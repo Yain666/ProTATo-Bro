@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewLootTable", menuName = "Loot System/Loot Table")]
+[CreateAssetMenu(fileName = "NewLootTable", menuName = "SO/Loot System/Loot Table")]
 public class LootTable : ScriptableObject
 {
     // 掉落模式

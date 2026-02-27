@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 这里先使用着SO,后面转Json再说
+[CreateAssetMenu(fileName ="IncreaseProperties", menuName ="SO/Properties/IncreaseProperties")]
 public class IncreaseProperties: ScriptableObject
 {
     public int id { get; set; }

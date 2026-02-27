@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewLootEntry", menuName = "Loot System/Loot Entry")]
+[CreateAssetMenu(fileName = "NewLootEntry", menuName = "SO/Loot System/Loot Entry")]
 public class LootEntry: ScriptableObject
 {
     public ItemData item; // 指向你的物品数据，或者用 int itemID

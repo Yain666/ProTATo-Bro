@@ -24,3 +24,4 @@ public enum ValueType
     Percentage = 0,  //百分比属性
     Numerical = 1   //数值属性
 }
+

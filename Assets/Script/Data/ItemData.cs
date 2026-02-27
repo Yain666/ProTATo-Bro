@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewItemData", menuName = "NewData/Item Data")]
+[CreateAssetMenu(fileName = "NewItemData", menuName = "SO/NewData/Item Data")]
 public class ItemData : ScriptableObject
 {
     // --- 基础信息 (所有物品都有) ---
