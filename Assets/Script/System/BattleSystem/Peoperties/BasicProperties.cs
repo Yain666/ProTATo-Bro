@@ -2,14 +2,39 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// 这里先使用着SO,后面转Json再说
+// 杩欓噷鍏堜娇鐢ㄧ潃SO,鍚庨潰杞琂son鍐嶈
 [CreateAssetMenu(fileName = "BasicProperties", menuName = "SO/Properties/BasicProperties")]
 public class BasicProperties: ScriptableObject
 {
-    public int id { get; set; }
-    public string attrName { get; set; }
-    public string description { get; set; }
-    public SpecialEffectEnum specialEffectId { get; set; }
+    [SerializeField] private int id;
+    [SerializeField] private string attrName;
+    [SerializeField] private string description;
+    [SerializeField] private SpecialEffectEnum specialEffectId;
+    
+    // 鍏叡灞炴�ц闂櫒
+    public int Id 
+    { 
+        get => id; 
+        set => id = value; 
+    }
+
+    public string AttrName 
+    { 
+        get => attrName; 
+        set => attrName = value; 
+    }
+
+    public string Description 
+    { 
+        get => description; 
+        set => description = value; 
+    }
+
+    public SpecialEffectEnum SpecialEffectId 
+    { 
+        get => specialEffectId; 
+        set => specialEffectId = value; 
+    }
 
     public override string ToString() => $"{id}-{attrName}-{description}-{specialEffectId}";
 }

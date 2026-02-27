@@ -2,16 +2,52 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// ÕâÀïÏÈÊ¹ÓÃ×ÅSO,ºóÃæ×ªJsonÔÙËµ
+// è¿™é‡Œå…ˆä½¿ç”¨ç€SO,åŽé¢è½¬Jsonå†è¯´
 [CreateAssetMenu(fileName ="IncreaseProperties", menuName ="SO/Properties/IncreaseProperties")]
 public class IncreaseProperties: ScriptableObject
 {
-    public int id { get; set; }
-    public string attrName { get; set; }
-    public string description { get; set; }
-    public ValueType type { get; set; } // ValueType
-    public SpecialEffectEnum specialEffectId { get; set; }
-    public int showAttrId { get; set; } // ×÷ÓÃµÄÊôÐÔid£¬Ó³ÉäpropertiesÖÐµÄid
+    [SerializeField] private int id;
+    [SerializeField] private string attrName;
+    [SerializeField] private string description;
+    [SerializeField] private ValueType type;  // å€¼ç±»åž‹
+    [SerializeField] private SpecialEffectEnum specialEffectId;
+    [SerializeField] private int showAttrId;  // ä½œç”¨çš„å±žæ€§idï¼Œæ˜ å°„propertiesä¸­çš„id
 
+    // å…¬å…±å±žæ€§è®¿é—®å™¨
+    public int Id 
+    { 
+        get => id; 
+        set => id = value; 
+    }
+
+    public string AttrName 
+    { 
+        get => attrName; 
+        set => attrName = value; 
+    }
+
+    public string Description 
+    { 
+        get => description; 
+        set => description = value; 
+    }
+
+    public ValueType Type
+    {
+        get => type;
+        set => type = value;
+    }
+
+    public SpecialEffectEnum SpecialEffectId 
+    { 
+        get => specialEffectId; 
+        set => specialEffectId = value; 
+    }
+
+    public int ShowAttrId
+    {
+        get => showAttrId;
+        set => showAttrId = value;
+    }
     public override string ToString() => $"{id}-{attrName}-{description}-{type}-{specialEffectId}-{showAttrId} ";
 }
