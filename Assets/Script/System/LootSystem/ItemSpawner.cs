@@ -14,7 +14,7 @@ public static class ItemSpawner
     /// <param name="stack">掉落堆（包含ItemData和数量）</param>
     public static void Spawn(Vector3 position, ItemStack stack)
     {
-        if (stack == null || stack.item == null) return;
+        if (stack is null || stack.item is null) return;
 
         // 第一步：获取 Prefab (印章)
         string path = stack.item.prefabPath;
@@ -25,9 +25,8 @@ public static class ItemSpawner
         {
             Debug.LogWarning($"物品 {stack.item.name} 的Prefab路径 {path} 无效，使用默认物体。");
             prefab = ResourceManager.Instance.GetPrefab(DEFAULT_LOOT_PATH);
+            return; // 真的没救了，直接滚蛋了
         }
-
-        if (prefab == null) return; // 真的没救了，直接滚蛋了
 
         // 第二步：通过对象池获取实例 (PoolManager)
         //GameObject lootInstance = Object.Instantiate(prefab, spawnPos, Quaternion.identity);

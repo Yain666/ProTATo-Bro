@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour ,IDamageable
 {
     #region --- properties ---
 
     public int icon;
+    public PropertiesComponent pc;
     
     #endregion --- properties ---
     
@@ -20,6 +21,10 @@ public class PlayerController : MonoBehaviour
                 icon += count;
             //TODO:更新UI
         }
-        
+    }
+    
+    public void TakeDamage(float amount)
+    {
+        throw new System.NotImplementedException();
     }
 }

@@ -4,12 +4,17 @@ using UnityEngine;
 
 public class SimpleEnemy : MonoBehaviour, IDamageable
 {
+    #region --- Properties ---
+    
     public float hp = 20;
     public LootTable table;
+    public PropertiesComponent pc;
 
+    #endregion --- Properties ---
+    
     public void TakeDamage(float amount)
     {
-        hp -= amount;
+        //hp -= amount;
         if (hp <= 0)
         {
             OnDeath();
@@ -19,7 +24,7 @@ public class SimpleEnemy : MonoBehaviour, IDamageable
 
     public void OnDeath()
     {
-        if (table != null)
+        if (table is not null)
         {
             // 1. 计算掉了什么道具
             List<ItemStack> drops = LootSystem.CalculateDrops(table);
