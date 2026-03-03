@@ -1,0 +1,128 @@
+﻿[
+  {
+    "id": 1,
+    "attrName": "max_hp",
+    "description": "最大生命值",
+    "specialEffectId": 0
+  },
+  {
+    "id": 2,
+    "attrName": "current_hp",
+    "description": "当前生命值",
+    "specialEffectId": 0
+  },
+  {
+    "id": 3,
+    "attrName": "hp_regeneration",
+    "description": "生命再生",
+    "specialEffectId": 0
+  },
+  {
+    "id": 4,
+    "attrName": "life_steal",
+    "description": "生命窃取",
+    "specialEffectId": 0
+  },
+  {
+    "id": 5,
+    "attrName": "damage_percent",
+    "description": "伤害",
+    "specialEffectId": 0
+  },
+  {
+    "id": 6,
+    "attrName": "melee_damage",
+    "description": "近战伤害",
+    "specialEffectId": 0
+  },
+  {
+    "id": 7,
+    "attrName": "ranged_damage",
+    "description": "远程伤害",
+    "specialEffectId": 0
+  },
+  {
+    "id": 8,
+    "attrName": "elemental_damage",
+    "description": "属性伤害",
+    "specialEffectId": 0
+  },
+  {
+    "id": 9,
+    "attrName": "attack_speed",
+    "description": "攻击速度",
+    "specialEffectId": 0
+  },
+  {
+    "id": 10,
+    "attrName": "crit_chance",
+    "description": "暴击率",
+    "specialEffectId": 0
+  },
+  {
+    "id": 11,
+    "attrName": "engineering",
+    "description": "工程学",
+    "specialEffectId": 0
+  },
+  {
+    "id": 12,
+    "attrName": "range",
+    "description": "范围",
+    "specialEffectId": 0
+  },
+  {
+    "id": 13,
+    "attrName": "armor",
+    "description": "护甲",
+    "specialEffectId": 0
+  },
+  {
+    "id": 14,
+    "attrName": "dodge",
+    "description": "闪避",
+    "specialEffectId": 0
+  },
+  {
+    "id": 15,
+    "attrName": "speed",
+    "description": "速度",
+    "specialEffectId": 0
+  },
+  {
+    "id": 16,
+    "attrName": "luck",
+    "description": "幸运",
+    "specialEffectId": 0
+  },
+  {
+    "id": 17,
+    "attrName": "harvesting",
+    "description": "收获",
+    "specialEffectId": 0
+  },
+  {
+    "id": 18,
+    "attrName": "pickup_range",
+    "description": "拾取范围",
+    "specialEffectId": 0
+  },
+  {
+    "id": 19,
+    "attrName": "xp_gain",
+    "description": "经验获取",
+    "specialEffectId": 0
+  },
+  {
+    "id": 20,
+    "attrName": "enemy_speed",
+    "description": "敌人速度",
+    "specialEffectId": 0
+  },
+  {
+    "id": 21,
+    "attrName": "consumable_heal",
+    "description": "消耗品回复",
+    "specialEffectId": 0
+  }
+]
