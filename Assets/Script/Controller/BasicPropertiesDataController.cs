@@ -24,9 +24,16 @@ public class BasicPropertiesDataController : BasicDataController<int,BasicProper
         return item.Id;
     }
     
-    // TODO:初始化所有的属性，外部通过这个来初始化整个的属性表
-    public void InitializeProperties()
+    // TODO:初始化所有的属性，外部通过这个来初始化整个的属性表,
+    // 返回一个List将这个所有的id给过去
+    public List<int> InitializeProperties()
     {
-        
+        List<int> propertyID = new List<int>();
+        foreach(BasicProperties item in dataList)
+        {
+
+            propertyID.Add(item.Id);
+        }
+        return propertyID;
     }
 }
