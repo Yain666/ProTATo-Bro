@@ -9,7 +9,7 @@ public class BasicProperties: ScriptableObject
     [SerializeField] private int id;
     [SerializeField] private string attrName;
     [SerializeField] private string description;
-    [SerializeField] private SpecialEffectEnum specialEffectId;
+    [SerializeField] private ValueType valueType;
     
     // 公共属性访问器
     public int Id 
@@ -30,11 +30,11 @@ public class BasicProperties: ScriptableObject
         set => description = value; 
     }
 
-    public SpecialEffectEnum SpecialEffectId 
+    public ValueType ValueType
     { 
-        get => specialEffectId; 
-        set => specialEffectId = value; 
+        get => valueType; 
+        set => valueType = value; 
     }
 
-    public override string ToString() => $"{id}-{attrName}-{description}-{specialEffectId}";
+    public override string ToString() => $"{id}-{attrName}-{description}-{valueType}";
 }

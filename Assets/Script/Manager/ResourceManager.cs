@@ -12,7 +12,8 @@ public class ResourceManager : MonoBehaviour
     private Dictionary<string, Sprite> iconCache = new Dictionary<string, Sprite>();
     // 缓存字典：Key是路径，Value是Json文本
     private Dictionary<string, string> jsonTextCache = new Dictionary<string, string>();
-    
+    // 这个是缓存音乐的
+    private Dictionary<string, AudioClip> audioCache = new Dictionary<string, AudioClip>();
         
     private void Awake()
     {
@@ -99,6 +100,31 @@ public class ResourceManager : MonoBehaviour
         else
         {
             Debug.LogError($"[ResourceManager] 找不到路径下的Json文件: {path} (请确保没有写 .json 后缀！)");
+            return null;
+        }
+    }
+    
+    public AudioClip GetAudio(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return null;
+
+        // 缓存有就直接返回
+        if (audioCache.ContainsKey(path))
+        {
+            return audioCache[path];
+        }
+
+        // 去 Resources 加载
+        AudioClip clip = Resources.Load<AudioClip>(path);
+
+        if (clip != null)
+        {
+            audioCache.Add(path, clip);
+            return clip;
+        }
+        else
+        {
+            Debug.LogError($"[ResourceManager] 找不到音频: {path}");
             return null;
         }
     }

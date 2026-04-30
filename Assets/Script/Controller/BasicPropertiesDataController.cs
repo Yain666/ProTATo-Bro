@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,7 +14,7 @@ public class BasicPropertiesDataController : BasicDataController<int,BasicProper
     /// </summary>
     public void Init()
     {
-        LoadData("Config/DataJson/BasicProperties"); 
+        LoadData("Config/DataJson/BasicProperties");
     }
     
     /// <summary>
@@ -24,6 +25,7 @@ public class BasicPropertiesDataController : BasicDataController<int,BasicProper
         return item.Id;
     }
     
+<<<<<<< HEAD
     // TODO:初始化所有的属性，外部通过这个来初始化整个的属性表,
     // 返回一个List将这个所有的id给过去
     public List<int> InitializeProperties()
@@ -35,5 +37,29 @@ public class BasicPropertiesDataController : BasicDataController<int,BasicProper
             propertyID.Add(item.Id);
         }
         return propertyID;
+=======
+    // TODO:初始化所有的属性，外部通过这个来初始化整个的属性表
+    // 供给给有 需要属性容器的 对象使用
+    public Dictionary<PropertyType,BindableAttribute> InitializeProperties()
+    {
+        // 为了给Model转换
+        Dictionary<PropertyType,BindableAttribute> configMap = new Dictionary<PropertyType, BindableAttribute>();
+        
+        foreach (BasicProperties item in dataList)
+        {
+            PropertyType type = (PropertyType)item.Id;
+            
+            // 安全检查 ,防止 Excel 填了一个代码里没有的 ID (比如 999)
+            if (!Enum.IsDefined(typeof(PropertyType), type))
+            {
+                Debug.LogError($"配置表错误：ID {item.Id} ({item.AttrName}) 在代码 Enum 中不存在！");
+                continue;
+            }
+            
+            BindableAttribute property = new BindableAttribute(type,0);
+            configMap.Add(type,property);
+        }
+        return configMap;
+>>>>>>> cd9c8426 (一次大更新)
     }
 }
