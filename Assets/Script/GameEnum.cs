@@ -142,3 +142,12 @@ public enum AudioTrack
     UI
 }
 
+/// <summary>
+/// 怪物刷出类型标记（用于死亡时精确处理逻辑）
+/// </summary>
+public enum SpawnType
+{
+    WaveBased = 0,   // 小波次定点生成
+    TimeBased = 1,   // 按时间定点生成
+    RandomPool = 2   // 随机生成池
+}

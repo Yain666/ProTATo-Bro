@@ -1,0 +1,8 @@
+﻿[
+  {
+    "Id": 1,
+    "WaveId": 101,
+    "MonsterName": "NormalZombie_Prefab",
+    "SpawnWeight": 10.0
+  }
+]

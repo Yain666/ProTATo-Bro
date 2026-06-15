@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 我还是觉得外部实时注入的方法有点消耗性能, 很多操作我觉得还是走
+// 未来
 public class Bullet : MonoBehaviour ,IPoolable
 {
     #region --- Properties ---
@@ -79,6 +80,18 @@ public class Bullet : MonoBehaviour ,IPoolable
         if (weaponData.destroyOnHit)
         {
             Despawn();
+        }
+        
+        // 如果撞击到了怪物
+        if (other.CompareTag("Monster"))
+        {
+            Monster monster = other.GetComponent<Monster>();
+            if (monster != null)
+            {
+                int damage = (int)weaponData.damage;
+                // 注入伤害给怪物
+                monster.ApplyDamage(damage);
+            }
         }
     }
 

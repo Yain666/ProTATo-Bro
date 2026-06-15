@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Script.Player.PlayerComponent;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour ,IDamageable
@@ -7,7 +8,7 @@ public class PlayerController : MonoBehaviour ,IDamageable
     #region --- properties ---
 
     public int icon;
-    public PropertiesComponent pc;
+    public PlayerStatus status;
     
     #endregion --- properties ---
     
@@ -27,4 +28,11 @@ public class PlayerController : MonoBehaviour ,IDamageable
     {
         throw new System.NotImplementedException();
     }
+
+    public void Die()
+    {
+        // PlayDeathSFX();
+        Debug.Log("Player 死啦！！");
+    }
+    
 }

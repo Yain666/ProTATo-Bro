@@ -16,8 +16,27 @@ public class GameManager : MonoBehaviour
         }
     }
     
+    // TODO: 这里后面的流程就是将这个放到开启游戏后面，就不在Start里面调用了
     public void DataInit()
     {
         CharacterDataController.Instance.Init();
+        BasicPropertiesDataController.Instance.Init();
+        
+    }
+    
+    private void MonsterInit()
+    {
+        
+    }
+
+    // 商店关闭、关卡开启
+    private void NextWave()
+    {
+        MonsterNextWave();
+    }
+
+    private void MonsterNextWave()
+    {
+        
     }
 }

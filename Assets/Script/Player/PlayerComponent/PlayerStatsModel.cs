@@ -31,7 +31,7 @@ public class PlayerStatsModel
     // 初始化：从配置表构建
     private void Initialize()
     {
-        _stats = BasicPropertiesDataController.Instance.InitializeProperties();
+        _stats = BasicPropertiesDataController.Instance.CreateRuntimeProperties();
     }
 
     // 获取某个属性（UI 或 战斗逻辑调用）

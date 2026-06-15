@@ -106,7 +106,14 @@ public class AudioManager : MonoBehaviour
         AudioSource source = GetFreeSource();
         source.clip = clip;
         source.volume = GetVolume(track);
-        source.spatialBlend = 1;
+        source.spatialBlend = 1; // 1 表示纯 3D 音效
+    
+        // --- 建议添加的 3D 衰减设置 ---
+        source.rolloffMode = AudioRolloffMode.Logarithmic; // 对数衰减
+        source.minDistance = 2f;                           // 2米内声音最大
+        source.maxDistance = 15f;                          // 超过15米就听不见了
+        // ----------------------------
+
         source.transform.position = worldPos;
         source.loop = false;
         source.Play();

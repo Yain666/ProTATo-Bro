@@ -1,0 +1,9 @@
+﻿[
+  {
+    "WaveId": 101,
+    "Level": 1,
+    "BigWave": 1,
+    "MaxMonsterCap": 7,
+    "RandomSpawnCD": 2.0
+  }
+]

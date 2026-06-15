@@ -1,0 +1,10 @@
+﻿[
+  {
+    "Id": 1,
+    "WaveId": 101,
+    "SpawnTime": 3,
+    "MonsterName": "NormalZombie_Prefab",
+    "NormalizedX": 0.5,
+    "NormalizedY": 0.9
+  }
+]

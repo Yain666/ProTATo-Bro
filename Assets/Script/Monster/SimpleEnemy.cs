@@ -8,7 +8,7 @@ public class SimpleEnemy : MonoBehaviour, IDamageable
     
     public float hp = 20;
     public LootTable table;
-    public PropertiesComponent pc;
+    public CharacterStatus pc;
 
     #endregion --- Properties ---
     

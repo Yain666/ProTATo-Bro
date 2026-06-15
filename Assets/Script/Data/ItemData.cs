@@ -7,7 +7,7 @@ public class ItemData : ScriptableObject
 {
     // --- 基础信息 (所有物品都有) ---
     public int id;
-    public string name;
+    public string itemName;
     public ItemType type;
     public string description;
     public string iconPath;  // 动态加载资源路径
