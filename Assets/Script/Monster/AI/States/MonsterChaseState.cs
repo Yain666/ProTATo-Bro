@@ -8,7 +8,7 @@ public class MonsterChaseState : MonsterState
 
     public override void Enter()
     {
-        Debug.Log($"[状态机] {monster.MonsterName} 开始寻路追击。");
+        //Debug.Log($"[状态机] {monster.MonsterName} 开始寻路追击。");
     }
 
     public override void Update()

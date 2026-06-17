@@ -27,10 +27,10 @@ public class TestGameManager : MonoBehaviour
         
 
         // 按空格键在随机位置生成一个怪物方块
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            SpawnTestEnemy();
-        }
+        // if (Input.GetKeyDown(KeyCode.Space))
+        // {
+        //     SpawnTestEnemy();
+        // }
     }
 
     void SpawnTestEnemy()

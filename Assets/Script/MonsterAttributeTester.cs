@@ -101,7 +101,7 @@ public class MonsterAttributeTester : MonoBehaviour
                 if (GUILayout.Button("模拟怪物受到 5 点原始伤害 (测试公式与扣血)", GUILayout.Height(30)))
                 {
                     // 调用您自己写的伤害扣除公式，会触发护甲减伤判定和 Death 检测 [1]
-                    status.TakeDamage(5); 
+                    status.TakeDamage(5,"Player"); 
                 }
                 
                 GUILayout.EndVertical();

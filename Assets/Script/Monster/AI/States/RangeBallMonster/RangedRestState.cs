@@ -30,7 +30,7 @@ public class RangedRestState : MonsterState
             monster.Anim.SetTrigger(restHash);
         }
 
-        Debug.Log($"[状态机] {monster.MonsterName} 结束射击，进入冷却阶段，持续 {restDuration:F2} 秒");
+        //Debug.Log($"[状态机] {monster.MonsterName} 结束射击，进入冷却阶段，持续 {restDuration:F2} 秒");
     }
 
     public override void Update()

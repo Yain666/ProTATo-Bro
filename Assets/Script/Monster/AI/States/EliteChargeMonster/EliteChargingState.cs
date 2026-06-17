@@ -74,7 +74,7 @@ public class EliteChargingState : MonsterState
                 int normalDamage = Mathf.RoundToInt(monster.status.GetPropertyValue(PropertyType.DamagePercent));
                 int chargeDamage = Mathf.RoundToInt(normalDamage * 2.5f);
                 
-                playerStatus.TakeDamage(chargeDamage);
+                playerStatus.TakeDamage(chargeDamage,"重装怪");
                 
                 // 击退玩家（可选动作）
                 // ApplyKnockback(collision);

@@ -23,7 +23,7 @@ public class RangedShootState : MonsterState
         {
             monster.Anim.SetTrigger(shootHash);
         }
-        Debug.Log($"[状态机] {monster.MonsterName} 开始凝聚魔法球...");
+        //Debug.Log($"[状态机] {monster.MonsterName} 开始凝聚魔法球...");
     }
 
     public override void Update()

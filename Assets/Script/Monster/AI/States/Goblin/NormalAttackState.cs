@@ -40,8 +40,9 @@ public class NormalAttackState : MonsterState
                 int finalDamage = monster.status.CalculateOutputDamage(melee.baseDamage, PropertyType.CritChance);
                 
                 // 3. 注入伤害给玩家
-                playerStatus.TakeDamage(finalDamage);
-                Debug.Log($"[状态机] {monster.MonsterName} 击中了玩家，造成 {finalDamage} 实际伤害。");
+                //Debug.Log("我要造成伤害了，但是为什么，我的Target不是空的吗，Target 是" + monster.Target.name);
+                playerStatus.TakeDamage(finalDamage,monster.MonsterName);
+                //Debug.Log($"[状态机] {monster.MonsterName} 击中了玩家，造成 {finalDamage} 实际伤害。");
             }
         }
     }

@@ -18,11 +18,9 @@ public class EliteChargeMonster : Monster
 
     #endregion
     
-    protected override void Awake()
+    // 因为做了预处理，所以现在所有Awake都用不了，真是个傻逼设计
+    private void PreLoad()
     {
-        base.Awake();
-
-        // 1. 在 Awake 时一次性分配好内存，后续只复用这些对象
         ChaseState = new EliteChaseState(this);
         PrepState = new ElitePrepState(this);
         ChargingState = new EliteChargingState(this);
@@ -31,6 +29,7 @@ public class EliteChargeMonster : Monster
 
     protected override void InitializeStates()
     {
+        PreLoad();
         // 精英怪默认进入精英追击状态
         StateMachine.Initialize(ChaseState);
     }

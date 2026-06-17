@@ -59,7 +59,7 @@ public class Projectile : MonoBehaviour, IPoolable
             CharacterStatus playerStatus = collision.GetComponent<CharacterStatus>();
             if (playerStatus != null)
             {
-                playerStatus.TakeDamage(_damage);
+                playerStatus.TakeDamage(_damage,"远程怪物222");
             }
             RecycleSelf();
         }

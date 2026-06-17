@@ -17,19 +17,30 @@ public class Monster : MonoBehaviour
     public string deathSFX = "deathSFX";
 
     // 状态机
-    public MonsterStateMachine StateMachine { get; private set; }
-    public Animator Anim { get; private set; }
-    
-    public Rigidbody2D rb { get;private set; }
+
+    public MonsterStateMachine StateMachine;
+    public Animator Anim;
+
+    public Rigidbody2D rb;
+    [HideInInspector]
     public Transform Target;
     
     protected virtual void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
-        status = GetComponent<MonsterStatus>();
-        StateMachine = new MonsterStateMachine();
+        //rb = GetComponent<Rigidbody2D>();
+        //status = GetComponent<MonsterStatus>();
+        //StateMachine = new MonsterStateMachine();
         
-        Anim = GetComponent<Animator>();
+        //Anim = GetComponent<Animator>();
+    }
+    
+    // 建立一个显式的内部组件确保方法
+    private void EnsureStateMachineInitialized()
+    {
+        if (StateMachine == null)
+        {
+            StateMachine = new MonsterStateMachine();
+        }
         
         // 双向绑定
         status.Initialize(this);
@@ -37,6 +48,7 @@ public class Monster : MonoBehaviour
     
     public virtual void Init(RawMonsterData rawData, Action<Monster> onDeath)
     {
+        EnsureStateMachineInitialized();
         _onDeathCallback = onDeath;
         
         // 核心数据注入：将表格中配置的属性和数值，重新初始化并塞入该实体的属性系统中
@@ -82,7 +94,7 @@ public class Monster : MonoBehaviour
     public void ApplyDamage(int incomingDamage)
     {
         // 伤害计算直接交还给属性系统处理
-        status.TakeDamage(incomingDamage);
+        status.TakeDamage(incomingDamage,"Player!!!!");
     }
     
     // TODO:当属性系统血量扣完时，由 MonsterStatus 触发此回调

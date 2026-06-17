@@ -15,9 +15,9 @@ GameObject:
   - component: {fileID: -4356507944442745823}
   - component: {fileID: 4184408569743610806}
   - component: {fileID: 857074624}
-  m_Layer: 8
+  m_Layer: 6
   m_Name: NormalZombie_Prefab
-  m_TagString: Untagged
+  m_TagString: Monster
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -160,9 +160,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd7ed7622d5a31d40966b334770fbe98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  status: {fileID: 0}
+  status: {fileID: 8172539969531904226}
   table: {fileID: 11400000, guid: e6b22d17b51a7114db0a9ecaecb1e853, type: 2}
   deathSFX: Monster/deathSFX
+  Anim: {fileID: 857074624}
+  rb: {fileID: -1778410274890091092}
   Target: {fileID: 0}
   baseDamage: 8
 --- !u!95 &857074624

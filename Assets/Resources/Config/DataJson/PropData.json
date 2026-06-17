@@ -1,1 +1,158 @@
-﻿[]
+﻿[
+  {
+    "id": 101,
+    "grade": 1,
+    "name": "急速皮靴",
+    "icon": "Icon/SpeedBoots",
+    "prop_type": 1,
+    "attr_Ids": [
+      1
+    ],
+    "prop_data": [
+      10.0
+    ],
+    "coin": 50,
+    "tags": [
+      "Speed"
+    ],
+    "exclude_ids": [],
+    "is_unique": false
+  },
+  {
+    "id": 105,
+    "grade": 1,
+    "name": "生锈铁剑",
+    "icon": "Icon/RustySword",
+    "prop_type": 2,
+    "attr_Ids": [
+      2
+    ],
+    "prop_data": [
+      5.0
+    ],
+    "coin": 40,
+    "tags": [
+      "Power"
+    ],
+    "exclude_ids": [],
+    "is_unique": false
+  },
+  {
+    "id": 102,
+    "grade": 2,
+    "name": "狂暴指环",
+    "icon": "Icon/PowerRing",
+    "prop_type": 1,
+    "attr_Ids": [
+      2
+    ],
+    "prop_data": [
+      15.0
+    ],
+    "coin": 150,
+    "tags": [
+      "Power"
+    ],
+    "exclude_ids": [
+      103
+    ],
+    "is_unique": false
+  },
+  {
+    "id": 106,
+    "grade": 2,
+    "name": "精良长弓",
+    "icon": "Icon/GoodBow",
+    "prop_type": 2,
+    "attr_Ids": [
+      2
+    ],
+    "prop_data": [
+      25.0
+    ],
+    "coin": 200,
+    "tags": [
+      "Speed"
+    ],
+    "exclude_ids": [],
+    "is_unique": false
+  },
+  {
+    "id": 103,
+    "grade": 2,
+    "name": "稳重护符",
+    "icon": "Icon/GuardAmulet",
+    "prop_type": 1,
+    "attr_Ids": [
+      3
+    ],
+    "prop_data": [
+      20.0
+    ],
+    "coin": 150,
+    "tags": [
+      "Defense"
+    ],
+    "exclude_ids": [
+      102
+    ],
+    "is_unique": false
+  },
+  {
+    "id": 107,
+    "grade": 3,
+    "name": "战神铠甲",
+    "icon": "Icon/WarArmor",
+    "prop_type": 1,
+    "attr_Ids": [
+      3
+    ],
+    "prop_data": [
+      50.0
+    ],
+    "coin": 500,
+    "tags": [
+      "Defense"
+    ],
+    "exclude_ids": [],
+    "is_unique": false
+  },
+  {
+    "id": 108,
+    "grade": 3,
+    "name": "激光枪",
+    "icon": "Icon/LaserGun",
+    "prop_type": 2,
+    "attr_Ids": [
+      2
+    ],
+    "prop_data": [
+      80.0
+    ],
+    "coin": 600,
+    "tags": [
+      "Tech"
+    ],
+    "exclude_ids": [],
+    "is_unique": false
+  },
+  {
+    "id": 104,
+    "grade": 4,
+    "name": "唯一圣剑",
+    "icon": "Icon/HolySword",
+    "prop_type": 2,
+    "attr_Ids": [
+      2
+    ],
+    "prop_data": [
+      200.0
+    ],
+    "coin": 1000,
+    "tags": [
+      "Power"
+    ],
+    "exclude_ids": [],
+    "is_unique": true
+  }
+]

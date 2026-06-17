@@ -11,6 +11,19 @@ public class PlayerController : MonoBehaviour ,IDamageable
     public PlayerStatus status;
     
     #endregion --- properties ---
+
+    private void Awake()
+    {
+        if (status == null)
+        {
+            status = GetComponent<PlayerStatus>();
+        }
+
+        if (status != null)
+        {
+            status.Initialize(this);
+        }
+    }
     
     
     public void OnPickUp(ItemData data, int count)

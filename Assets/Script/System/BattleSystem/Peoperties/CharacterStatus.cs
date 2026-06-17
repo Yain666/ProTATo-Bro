@@ -28,6 +28,12 @@ public class CharacterStatus : MonoBehaviour
     // 安全获取某项属性的当前最终值（Float 类型）
     public float GetPropertyValue(PropertyType type)
     {
+        if (properties == null)
+        {
+            Debug.Log(gameObject.name + "这哥们初始化没有完成，这个字典是空的 ");
+            properties = BasicPropertiesDataController.Instance.CreateRuntimeProperties();
+        }
+        
         if (properties.TryGetValue(type, out var attribute))
         {
             return attribute.Value;
@@ -90,7 +96,7 @@ public class CharacterStatus : MonoBehaviour
     /// </summary>
     /// <param name="incomingDamage">攻击者的原始伤害</param>
     /// <returns>实际扣除的生命值</returns>
-    public int TakeDamage(int incomingDamage)
+    public int TakeDamage(int incomingDamage,string WhoTakeDamage)
     {
         int armor = Mathf.RoundToInt(GetPropertyValue(PropertyType.Armor));
         float reduction = CalculateDamageReduction(armor);
@@ -108,7 +114,7 @@ public class CharacterStatus : MonoBehaviour
         // 更新当前生命值属性
         ModifyBaseAttribute(PropertyType.CurrentHp, nextHp - currentHp);
 
-        Debug.Log($"受到了 {incomingDamage} 原始伤害，护甲 {armor} 减伤 { (1 - reduction) * 100:F1}%，实际扣血 {finalDamage}");
+        Debug.Log($"{gameObject.name}  受到了 {WhoTakeDamage} 的成吨伤害 {incomingDamage} 原始伤害，护甲 {armor} 减伤 { (1 - reduction) * 100:F1}%，实际扣血 {finalDamage}");
         
         if (nextHp <= 0)
         {

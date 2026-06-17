@@ -14,9 +14,10 @@ GameObject:
   - component: {fileID: 2123550922473093815}
   - component: {fileID: 5859767422638651819}
   - component: {fileID: 8330877269544474618}
-  m_Layer: 8
+  - component: {fileID: 3335940164094302160}
+  m_Layer: 6
   m_Name: EliteBoar_Prefab
-  m_TagString: Untagged
+  m_TagString: Monster
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -159,10 +160,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a5e837dac9e351429e9edc684fba68a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  status: {fileID: 0}
+  status: {fileID: 5859767422638651819}
   table: {fileID: 11400000, guid: 330dac2f3d53d8143b7b6db370c8fb47, type: 2}
   deathSFX: Monster/deathSFX
+  Anim: {fileID: 3335940164094302160}
+  rb: {fileID: 4823903952776484842}
   Target: {fileID: 0}
   chargeSpeedMultiplier: 2.77
   prepDuration: 0.4
   chargeDuration: 0.7
+--- !u!95 &3335940164094302160
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3705150276883665224}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: ef28d93c99f0909498fb4c2aa4d161f7, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0

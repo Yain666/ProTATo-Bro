@@ -12,18 +12,19 @@ public class NormalMeleeMonster : Monster
     public NormalAttackState AttackState { get; private set; }
     public NormalCooldownState CooldownState { get; private set; }
 
-    protected override void Awake()
+    // 因为做了预处理，所以现在所有Awake都用不了，真是个傻逼设计
+    private void PreLoad()
     {
-        base.Awake();
-
         // 预分配状态对象
         ChaseState = new NormalChaseState(this);
         AttackState = new NormalAttackState(this);
         CooldownState = new NormalCooldownState(this);
+
     }
 
     protected override void InitializeStates()
     {
+        PreLoad();
         StateMachine.Initialize(ChaseState);
     }
 }

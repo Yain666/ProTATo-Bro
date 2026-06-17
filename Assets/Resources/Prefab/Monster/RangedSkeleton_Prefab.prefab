@@ -45,13 +45,14 @@ GameObject:
   - component: {fileID: 360294933723836278}
   - component: {fileID: 7528348344787145937}
   - component: {fileID: 3383438087650836355}
-  m_Layer: 8
+  - component: {fileID: 251080187178587455}
+  m_Layer: 6
   m_Name: RangedSkeleton_Prefab
-  m_TagString: Untagged
+  m_TagString: Monster
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5317858558793506846
 Transform:
   m_ObjectHideFlags: 0
@@ -191,9 +192,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9b218a13f5df324a9dd4762d84000b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Status: {fileID: 0}
+  status: {fileID: 5342128644846067600}
   table: {fileID: 11400000, guid: 330dac2f3d53d8143b7b6db370c8fb47, type: 2}
   deathSFX: Monster/deathSFX
+  Anim: {fileID: 251080187178587455}
+  rb: {fileID: 360294933723836278}
   Target: {fileID: 0}
   ballPrefab: {fileID: 1690071321644628809, guid: cb8d61a0c920dad439803cfd5f496803, type: 3}
   firePoint: {fileID: 5317858558793506846}
+--- !u!95 &251080187178587455
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7888181993914009620}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 88338ffd31c8ccf48b4a9aeff72593a9, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
