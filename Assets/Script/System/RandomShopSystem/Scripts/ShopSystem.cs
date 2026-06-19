@@ -72,10 +72,19 @@ public class ShopSystem : MonoBehaviour
     
     public void RollOneSlot()
     {
+        _lastRolledItem = RollOneItem();
+        if (_lastRolledItem != null)
+        {
+            Debug.Log($"<color=green>[商店出货] {(_lastRolledItem.Grade == 4 ? "【唯一】" : "")}{_lastRolledItem.Name} (ID: {_lastRolledItem.ItemId})</color>");
+        }
+    }
+
+    private IShopPurchasable RollOneItem()
+    {
         if (_playerInventory == null)
         {
             Debug.LogError("[ShopSystem] 背包未初始化，无法刷新商店。");
-            return;
+            return null;
         }
 
         // 1. 获取动态流派标签
@@ -92,7 +101,7 @@ public class ShopSystem : MonoBehaviour
         if (rolledTierString != null && rolledTierString.StartsWith("Tier_"))
             int.TryParse(rolledTierString.Replace("Tier_", ""), out rolledGrade);
 
-        if (rolledType == null) return;
+        if (rolledType == null) return null;
 
         // 3. 筛选候选池 (符合品阶 + 类型 + 锁)
         var allProps = PropDataController.Instance.GetAllProps();
@@ -110,7 +119,7 @@ public class ShopSystem : MonoBehaviour
         {
             Debug.LogWarning($"[保底] 品阶{rolledGrade}类型{rolledType}为空，回退到品阶1全池");
             candidates = allProps.Where(p => p.grade == 1 && !purchasedItemIds.Contains(p.id) && !excludedItemIds.Contains(p.id)).Cast<IShopPurchasable>().ToList();
-            if (candidates.Count == 0) return;
+            if (candidates.Count == 0) return null;
         }
 
         // 5. 流派加权抽取
@@ -128,26 +137,21 @@ public class ShopSystem : MonoBehaviour
             _itemPool.Add(item, weight);
         }
 
-        _lastRolledItem = _itemPool.Pick();
-        if (_lastRolledItem != null)
-        {
-            Debug.Log($"<color=green>[商店出货] {(_lastRolledItem.Grade == 4 ? "【唯一】" : "")}{_lastRolledItem.Name} (ID: {_lastRolledItem.ItemId})</color>");
-        }
+        return _itemPool.Pick();
     }
 
     public void PurchaseCurrentItem()
     {
         if (_lastRolledItem == null) return;
-
-        Debug.Log($"<color=yellow>[购买成功] 获得了: {_lastRolledItem.Name}</color>");
-        
-        // 1. 加入玩家背包
-        _playerInventory.AddProp(_lastRolledItem.ItemId);
-
-        // 2. 触发道具锁逻辑
-        OnItemPurchased(_lastRolledItem);
-
+        PurchaseItem(_lastRolledItem);
         _lastRolledItem = null;
+    }
+
+    private void PurchaseItem(IShopPurchasable item)
+    {
+        Debug.Log($"<color=yellow>[购买成功] 获得了: {item.Name}</color>");
+        _playerInventory.AddProp(item.ItemId);
+        OnItemPurchased(item);
     }
 
     private void OnItemPurchased(IShopPurchasable item)
