@@ -1,0 +1,60 @@
+public enum ObjectType
+{
+    Normal = 0,
+    Player = 1,
+    Equip  = 2,
+    Enemy  = 3,
+    Item   = 4,
+    Bullet = 5,
+}
+
+public enum SpriteType
+{
+    Grid = 0,
+    Item = 1,
+}
+
+public enum GridType
+{
+    Grass   = 1,    // 草地
+    Water   = 2,    // 水地
+    Ground  = 3,    // 平地
+}
+
+public enum ItemType
+{
+    Default = 0,    // 默认
+    Tree_1  = 1,    // 松树
+    Tree_2  = 2,    // 榕树
+    Grass   = 3,    // 草丛
+    Stone_1 = 4,    // 石头(草)
+    Stone_2 = 5,    // 石头(花)
+}
+
+public enum IsPlace
+{
+    False = 0,    // 无放置
+    True  = 1,    // 有放置
+}
+
+public enum GameState
+{
+    Preparing = 0,    // 准备阶段
+    Running   = 1,    // 运行阶段
+    Paused    = 2,    // 暂停阶段
+}
+
+public enum CommodityType
+{
+    weapon = 1, // 表示武器
+    prop = 2,   // 表示道具
+    Mix = 3,    // 表示混合
+}
+
+public enum UILayer
+{
+    Bot,
+    Mid,
+    Top,
+    System,
+}

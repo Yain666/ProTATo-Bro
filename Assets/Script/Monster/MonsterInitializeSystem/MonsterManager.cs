@@ -5,6 +5,7 @@ using UnityEngine;
 public class MonsterManager : MonoBehaviour
 {
     public static MonsterManager Instance { get; private set; }
+    public float defaultWaveDuration = 60f;
 
     // 运行时所持有的该波次组装配置
     private RuntimeLevelWaveConfig _currentWaveConfig;
@@ -18,11 +19,14 @@ public class MonsterManager : MonoBehaviour
 
     // 2. 时间队列状态
     private float _waveTimer = 0f;
+    private float _waveDuration = 0f;
     private int _lastProcessedSecond = -1;
     private List<RuntimeTimeSpawnConfig> _pendingTimeSpawns = new List<RuntimeTimeSpawnConfig>();
 
     // 3. 随机池状态
     private float _randomCDTimer = 0f;
+    private bool _isWaveRunning = false;
+    private bool _subWaveQueueFinished = false;
 
     private void Awake()
     {
@@ -35,6 +39,7 @@ public class MonsterManager : MonoBehaviour
     /// </summary>
     public void Init(int level)
     {
+        RunStateManager.Instance.StartRun(level);
         MonsterController.Instance.Init(level);
     }
 
@@ -52,6 +57,10 @@ public class MonsterManager : MonoBehaviour
             return;
         }
 
+        _isWaveRunning = true;
+        _subWaveQueueFinished = false;
+        _waveDuration = _currentWaveConfig.duration > 0f ? _currentWaveConfig.duration : defaultWaveDuration;
+
         // 2. 将 maxMonsterCap 交给 Pool 进行峰值预热
         MonsterPool.Instance.InitPool(_currentWaveConfig);
 
@@ -60,6 +69,7 @@ public class MonsterManager : MonoBehaviour
 
         // 4. 开始定点刷出第 0 小波次的怪
         _currentSubWaveIndex = 0;
+        EventSystem.PublishWaveStarted(_currentWaveConfig.level, _currentWaveConfig.bigWave);
         SpawnSubWave(_currentSubWaveIndex);
     }
 
@@ -84,6 +94,12 @@ public class MonsterManager : MonoBehaviour
 
         // 驱动时间轴 (整秒倒计时)
         _waveTimer += Time.deltaTime;
+        if (_isWaveRunning && _waveDuration > 0f && _waveTimer >= _waveDuration)
+        {
+            EndCurrentWaveByTime();
+            return;
+        }
+
         int currentSecond = Mathf.FloorToInt(_waveTimer);
 
         if (currentSecond > _lastProcessedSecond)
@@ -99,7 +115,11 @@ public class MonsterManager : MonoBehaviour
     #region 1. 小波次队列 (先进先出，清空后回调注入触发下一批)
     private void SpawnSubWave(int subWaveIndex)
     {
-        if (_currentWaveConfig.subWaves == null || _currentWaveConfig.subWaves.Count == 0) return;
+        if (_currentWaveConfig.subWaves == null || _currentWaveConfig.subWaves.Count == 0)
+        {
+            _subWaveQueueFinished = true;
+            return;
+        }
 
         // 循环处理
         if (subWaveIndex >= _currentWaveConfig.subWaves.Count)
@@ -112,6 +132,7 @@ public class MonsterManager : MonoBehaviour
             else
             {
                 Debug.Log("小波次队列已全数打完并清空，不再循环。");
+                _subWaveQueueFinished = true;
                 return;
             }
         }
@@ -181,6 +202,7 @@ public class MonsterManager : MonoBehaviour
     #region 3. 随机生成池 (最低优先级，严格受 maxMonsterCap 约束)
     private void HandleRandomSpawning()
     {
+        if (!_isWaveRunning) return;
         if (_currentWaveConfig.randomSpawns == null || _currentWaveConfig.randomSpawns.Count == 0) return;
 
         _randomCDTimer -= Time.deltaTime;
@@ -241,6 +263,34 @@ public class MonsterManager : MonoBehaviour
             _activeSubWaveMonsters.Remove(monster);
             CheckSubWaveQueue();
         }
+    }
+
+    private void EndCurrentWaveByTime()
+    {
+        if (!_isWaveRunning || _currentWaveConfig == null) return;
+
+        _isWaveRunning = false;
+        int level = _currentWaveConfig.level;
+        int wave = _currentWaveConfig.bigWave;
+
+        RecycleActiveMonstersWithoutDrops();
+        _currentWaveConfig = null;
+        EventSystem.PublishWaveEnded(level, wave);
+    }
+
+    private void RecycleActiveMonstersWithoutDrops()
+    {
+        List<Monster> monsters = new List<Monster>(_activeMonsters);
+        foreach (Monster monster in monsters)
+        {
+            if (monster != null)
+            {
+                MonsterPool.Instance.RecycleMonster(monster);
+            }
+        }
+
+        _activeMonsters.Clear();
+        _activeSubWaveMonsters.Clear();
     }
     #endregion
 }

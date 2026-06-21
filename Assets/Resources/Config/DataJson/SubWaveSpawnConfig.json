@@ -34,5 +34,32 @@
     "NormalizedX": 0.3,
     "NormalizedY": 0.4,
     "LoopSubWaves": true
+  },
+  {
+    "Id": 5,
+    "WaveId": 102,
+    "SubWaveIndex": 0,
+    "MonsterName": "NormalZombie_Prefab",
+    "NormalizedX": 0.2,
+    "NormalizedY": 0.2,
+    "LoopSubWaves": true
+  },
+  {
+    "Id": 6,
+    "WaveId": 102,
+    "SubWaveIndex": 0,
+    "MonsterName": "RangedSkeleton_Prefab",
+    "NormalizedX": 0.8,
+    "NormalizedY": 0.8,
+    "LoopSubWaves": true
+  },
+  {
+    "Id": 7,
+    "WaveId": 102,
+    "SubWaveIndex": 1,
+    "MonsterName": "EliteBoar_Prefab",
+    "NormalizedX": 0.5,
+    "NormalizedY": 0.5,
+    "LoopSubWaves": true
   }
 ]

@@ -1,0 +1,77 @@
+using System.Collections.Generic;
+
+public enum PropType
+{
+    Paotai = 1, // 炮台
+    GongNeng = 2, // 功能性道具
+    ZhangAI = 3, // 障碍
+    ShangHai = 4, // 伤害性道具
+    YiLiao = 5, // 医疗道具
+    ZengYi = 6, // 增益道具
+    YouHuo = 7, // 诱惑性道具
+}
+
+
+
+public class PropData : RandomItem 
+{
+    private Dictionary<int, float> propAttr = new Dictionary<int, float>();
+    private Dictionary<int, float> propIncreaseAttr = new Dictionary<int, float>();
+    public CommodityType c_type => CommodityType.prop;
+    public int id { get; set; }
+    public string propName { get; set; }
+    public int grade { get; set; }
+    public string propImg { get; set; }
+    public PropType propType { get; set; }
+    public List<int> attrIds            {private get; set;}
+    public List<float> attrData         {private get; set;}
+    public List<int> increaseAttrIds    {private get; set;}
+    public List<float> increaseAttrData {private get; set;}
+        
+    public List<WeaponAtkType> attackWay {  get; set ; }
+    public List<WeaponEffectType> specialWay  {  get; set; }
+    
+    public int isMonsterDes { get; set; }
+    public int isCharacterDes { get; set; }
+    public int isDisposable { get; set; }
+    public float areaLength { get; set; }
+    public float areaWidth { get; set; }
+    public float coin {  get; set; }
+    public string propImgIdx { get; set; }
+    public Dictionary<int, float> PropAttr
+    {
+        get
+        {
+            if (propAttr.Count == 0 && attrIds.Count > 0) 
+            {
+                for (int i = 0; i < attrIds.Count; i++) 
+                {
+                    var idx = attrIds[i];
+                    var value = attrData[i];
+                    propAttr[idx] = value;
+                }
+            }
+            return propAttr;
+        }
+    }
+    public Dictionary<int, float> PropIncreaseAttr
+    {
+        get
+        {
+            if (propIncreaseAttr.Count == 0 && increaseAttrIds.Count > 0)
+            {
+                for (int i = 0; i < increaseAttrIds.Count; i++)
+                {
+                    var idx = increaseAttrIds[i];
+                    var value = increaseAttrData[i];
+                    propIncreaseAttr[idx] = value;
+                }
+            }
+            return propIncreaseAttr;
+        }
+    }
+    public override string ToString() =>
+      $"{id}-{propName}-{attrIds.Count}\n" +
+      $"extra:{PropAttr.Count}-{PropIncreaseAttr.Count}\n";
+
+}

@@ -1,0 +1,80 @@
+using System.Collections.Generic;
+
+public enum WeaponType
+{
+    None = 0,
+    ShortRange = 1, // 近战
+    LongRange = 2, // 远程
+}
+
+
+public class WeaponData : RandomItem
+{
+    private Dictionary<int, float> weaponAttr = new Dictionary<int, float>(); // 武器属性读这个
+    private Dictionary<int, float> weaponIncreaseAttr = new Dictionary<int, float>(); // 增值属性读这个
+    public CommodityType c_type => CommodityType.weapon;
+
+    public int id { get; set; }
+    public int grade { get; set; }
+    public string weaponName { get; set; }
+    public float weaponDamage { get; set; }
+    public WeaponType weaponType { get; set; }
+    public float weaponRange { get; set; }
+    public float weaponArea { get; set; }
+    public int isPenetrate { get; set; }
+    public float cooldownTime { get; set; }
+    public string weaponImg { get; set; }
+    public float degree { get; set; }
+    public List<int> attrIds {private get; set; }
+    public List<float> attrData { private get; set; }
+    public List<int> increaseAttrIds {private get; set; }
+    public List<float> increaseAttrData {private get; set; }
+    
+    public List<WeaponAtkType> attackWay {  get; set ; }
+    public List<WeaponEffectType> specialWay  {  get; set; }
+    public float coin { get; set; }
+
+    public string weaponImgIdx { get; set; }
+
+    public Dictionary<int, float> WeaponAttr
+    {
+        get
+        {
+            if (weaponAttr.Count == 0 && attrIds.Count > 0)
+            {
+                for (int i = 0; i < attrIds.Count; i++)
+                {
+                    var idx = attrIds[i];
+                    var value = attrData[i];
+                    weaponAttr[idx] = value;
+                }
+            }
+
+            return weaponAttr;
+        }
+    }
+
+    public Dictionary<int, float> WeaponIncreaseAttr
+    {
+        get
+        {
+            if (weaponIncreaseAttr.Count == 0 && increaseAttrIds.Count > 0)
+            {
+                for (int i = 0; i < increaseAttrIds.Count; i++)
+                {
+                    var idx =increaseAttrIds[i];
+                    var value = increaseAttrData[i];
+                    weaponIncreaseAttr[idx] = value;
+                }
+            }
+
+            return weaponIncreaseAttr;
+        }
+    }
+
+    public override string ToString()
+    {
+        return $"{id}-{weaponType}-{weaponName}-{WeaponAttr.Count}-{WeaponIncreaseAttr.Count}";
+    }
+
+}

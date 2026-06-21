@@ -4,5 +4,17 @@
     "WaveId": 101,
     "MonsterName": "NormalZombie_Prefab",
     "SpawnWeight": 10.0
+  },
+  {
+    "Id": 2,
+    "WaveId": 102,
+    "MonsterName": "NormalZombie_Prefab",
+    "SpawnWeight": 10.0
+  },
+  {
+    "Id": 3,
+    "WaveId": 103,
+    "MonsterName": "NormalZombie_Prefab",
+    "SpawnWeight": 10.0
   }
 ]

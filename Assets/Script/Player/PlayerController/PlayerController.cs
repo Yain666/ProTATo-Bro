@@ -33,6 +33,7 @@ public class PlayerController : MonoBehaviour ,IDamageable
         {
             if(icon < 9999999)
                 icon += count;
+            RunStateManager.Instance.AddGold(count);
             //TODO:更新UI
         }
     }

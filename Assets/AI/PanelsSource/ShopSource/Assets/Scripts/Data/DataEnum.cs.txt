@@ -1,0 +1,39 @@
+public enum SpecialEffectEnum
+{
+    EffectProperties    = 0, // 特效属性
+    ExplosionProperties = 1,// 爆炸属性
+    BurningProperties   = 2, // 燃烧属性
+    FreezingProperties  = 3, // 冰冻属性
+    BuildingProperties  = 4, // 建筑属性
+}
+
+public enum ValueType
+{
+    Percentage = 0,  //百分比属性
+    Numerical  = 1   //数值属性
+}
+
+public enum WeaponAtkType
+{
+    None        = 0,
+    Bullet      = 4, //子弹攻击
+    Point2Point = 5, //点对点
+    Touch       = 6, //触碰攻击
+}
+
+public enum WeaponEffectType
+{
+    None        = 0,
+    Explosion   = 1, //爆炸
+    Burning     = 2, //燃烧
+    Freezing    = 3, //冰冻
+}
+
+public enum MonsterType
+{
+    Normal        = 0,
+    Boss          = 1, //近战boss
+    Shooter       = 2, //射手
+    Shooter_Boss  = 3, //远程boss
+    Comprehensive = 4, //综合boss
+}

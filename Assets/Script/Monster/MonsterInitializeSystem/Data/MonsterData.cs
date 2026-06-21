@@ -14,6 +14,7 @@ public class RawWaveConfig
     public int WaveId;
     public int Level;
     public int BigWave;
+    public float Duration;
     public int MaxMonsterCap;
     public bool LoopSubWaves;
     public float RandomSpawnCD;
@@ -114,6 +115,7 @@ public class RuntimeLevelWaveConfig
 {
     public int level;
     public int bigWave;
+    public float duration;
     public int maxMonsterCap;
     public float randomSpawnCD;
 

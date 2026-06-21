@@ -1,0 +1,54 @@
+
+
+using System.Collections.Generic;
+
+public class ChestData 
+{
+    public int level { get; set; }
+    public int round { get; set; }
+    public int treasureType { get; set; }
+    public int contentType { get; set; }
+    public int selTolNum { get; set; }
+    public int selNum { get; set; }
+
+    public WeaponSelData weaponSelData { get; set; }
+    public PropSelData propSelData { get; set; }
+
+    public class WeaponSelData
+    {
+        public LeftWeapon leftWeapon { get; set; }
+        public List<int> require_ids {  get; set; }
+
+        public class LeftWeapon
+        {
+            public struct InvolveWeapon
+            {
+                public int rate { get; set; }
+                public int grade { get; set; }
+            }
+            public List<InvolveWeapon> involve_weapon { get; set; }
+            public List<int> involve_grade { get; set; }
+        };
+    }
+    public class PropSelData
+    {
+
+        public LeftProp left_prop { get; set; }
+
+        public List<int> require_ids { get; set; }
+
+        public class LeftProp
+        {
+            public struct InvolveProp
+            {
+                public int rate { get; set; }
+                public int type{ get; set; }
+
+            } 
+            public List<InvolveProp> involve_prop {  get; set; }
+            public List<int> involve_type { get; set; }
+        } 
+    }
+
+    public override string ToString() => $"{level}-{round}";
+}

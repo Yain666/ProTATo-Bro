@@ -37,6 +37,7 @@ public class ShopSystemTester : MonoBehaviour
         GUILayout.BeginArea(new Rect(10, 10, 300, 500));
         GUILayout.Label("<b><size=15>商店测试面板</size></b>");
         GUILayout.Label($"当前波次: 第{shopSystem.currentLevel}关 - 第{shopSystem.currentWave}波");
+        GUILayout.Label($"金币: {RunStateManager.Instance.Gold}  等级: {RunStateManager.Instance.PlayerLevel}");
 
         if (GUILayout.Button("刷新货位 (Space)", GUILayout.Height(40))) shopSystem.RollOneSlot();
 

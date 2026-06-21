@@ -5,9 +5,10 @@ using UnityEngine;
 
 public class ShopSystem : MonoBehaviour
 {
-    public WaveDataProcessor processor;
+    public WaveDataController waveDataController;
 
     [Header("商店波次状态")]
+    public bool useRunState = true;
     public int currentLevel = 1;
     public int currentWave = 1;
 
@@ -18,37 +19,113 @@ public class ShopSystem : MonoBehaviour
     [Header("已持有的道具ID (用于去重和互斥锁)")]
     public HashSet<int> purchasedItemIds = new HashSet<int>();
     public HashSet<int> excludedItemIds = new HashSet<int>();
+
+    [Header("武器锁追踪")]
+    public HashSet<int> purchasedWeaponIds = new HashSet<int>();
+    public HashSet<int> excludedWeaponIds = new HashSet<int>();
     
     private PropInventory _playerInventory;
+    private WeaponInventory _weaponInventory;
     private IShopPurchasable _lastRolledItem;
+    private bool _isInitialized;
     
     private WeightedRandomPool<IShopPurchasable> _itemPool = new WeightedRandomPool<IShopPurchasable>();
 
     public IShopPurchasable LastRolledItem => _lastRolledItem;
     public IReadOnlyList<int> OwnedPropIds => _playerInventory?.OwnedPropIds;
+    public IReadOnlyList<int> OwnedWeaponIds => _weaponInventory?.OwnedWeaponIds;
 
     void Start()
     {
+        EnsureInitialized();
+    }
+
+    public bool EnsureInitialized()
+    {
+        if (_isInitialized) return true;
+
+        if (waveDataController == null)
+        {
+            waveDataController = GetComponent<WaveDataController>();
+        }
+
+        if (waveDataController == null)
+        {
+            Debug.LogError("[ShopSystem] 找不到 WaveDataController，无法读取商店波次权重配置。");
+            return false;
+        }
+
         // 1. 初始化数据控制器
         PropDataController.Initialize();
+        WeaponDataController.Initialize();
+        BasicPropertiesDataController.Instance.Init();
         
         // 2. 接入真实玩家背包；测试场景的临时玩家由 ShopSystemTester 负责创建
         var status = FindObjectOfType<Script.Player.PlayerComponent.PlayerStatus>();
         if (status == null)
         {
             Debug.LogError("[ShopSystem] 找不到 PlayerStatus，无法接入 PropInventory。");
-            return;
+            return false;
         }
 
         _playerInventory = status.Inventory ?? new PropInventory(status);
+        _weaponInventory = new WeaponInventory();
 
         // 3. 延迟加载波次数据
-        Invoke(nameof(InitShop), 0.1f); 
+        InitShop();
+        _isInitialized = true;
+        return true;
+    }
+
+    private void OnEnable()
+    {
+        EventSystem.OnShopOpened += HandleShopOpened;
+        EventSystem.OnWaveStarted += HandleWaveStarted;
+    }
+
+    private void OnDisable()
+    {
+        EventSystem.OnShopOpened -= HandleShopOpened;
+        EventSystem.OnWaveStarted -= HandleWaveStarted;
     }
 
     private void InitShop()
     {
-        processor.UpdateCurrentWaveData(currentLevel, currentWave);
+        SyncWaveFromRunState();
+        if (waveDataController != null)
+        {
+            waveDataController.UpdateCurrentWaveData(currentLevel, currentWave);
+        }
+    }
+
+    private void SyncWaveFromRunState()
+    {
+        if (!useRunState) return;
+
+        RunState state = RunStateManager.Instance.State;
+        currentLevel = state.currentLevel;
+        currentWave = Mathf.Max(1, state.currentWave);
+    }
+
+    private void HandleWaveStarted(int level, int wave)
+    {
+        if (!useRunState) return;
+
+        currentLevel = level;
+        currentWave = Mathf.Max(1, wave);
+        if (waveDataController != null)
+        {
+            waveDataController.UpdateCurrentWaveData(currentLevel, currentWave);
+        }
+    }
+
+    private void HandleShopOpened()
+    {
+        SyncWaveFromRunState();
+        if (waveDataController != null)
+        {
+            waveDataController.UpdateCurrentWaveData(currentLevel, currentWave);
+        }
     }
 
     /// <summary>
@@ -57,16 +134,30 @@ public class ShopSystem : MonoBehaviour
     private List<string> GetCurrentPlayerTags()
     {
         List<string> tags = new List<string>();
-        if (_playerInventory == null) return tags;
-
-        foreach (int propId in _playerInventory.OwnedPropIds)
+        if (_playerInventory != null)
         {
-            var config = _playerInventory.GetPropConfig(propId);
-            if (config != null && config.tags != null)
+            foreach (int propId in _playerInventory.OwnedPropIds)
             {
-                tags.AddRange(config.tags);
+                var config = _playerInventory.GetPropConfig(propId);
+                if (config != null && config.tags != null)
+                {
+                    tags.AddRange(config.tags);
+                }
             }
         }
+
+        if (_weaponInventory != null)
+        {
+            foreach (int weaponId in _weaponInventory.OwnedWeaponIds)
+            {
+                WeaponShopData weaponData = WeaponDataController.Instance.GetWeaponData(weaponId);
+                if (weaponData != null && weaponData.tags != null)
+                {
+                    tags.AddRange(weaponData.tags);
+                }
+            }
+        }
+
         return tags;
     }
     
@@ -79,8 +170,28 @@ public class ShopSystem : MonoBehaviour
         }
     }
 
+    public List<IShopPurchasable> RollItems(int count)
+    {
+        List<IShopPurchasable> results = new List<IShopPurchasable>();
+        for (int i = 0; i < count; i++)
+        {
+            IShopPurchasable item = RollOneItem();
+            if (item != null)
+            {
+                results.Add(item);
+            }
+        }
+
+        return results;
+    }
+
     private IShopPurchasable RollOneItem()
     {
+        if (_playerInventory == null)
+        {
+            EnsureInitialized();
+        }
+
         if (_playerInventory == null)
         {
             Debug.LogError("[ShopSystem] 背包未初始化，无法刷新商店。");
@@ -91,10 +202,16 @@ public class ShopSystem : MonoBehaviour
         List<string> activeTags = GetCurrentPlayerTags();
 
         // 2. 抽类型和品阶
-        var typeWeights = processor.GetWeights(WeightTags.ObjectType);
+        if (waveDataController == null)
+        {
+            Debug.LogError("[ShopSystem] WaveDataController 未初始化，无法刷新商店。");
+            return null;
+        }
+
+        var typeWeights = waveDataController.GetWeights(WeightTags.ObjectType);
         string rolledType = RandomFromDict(typeWeights); 
 
-        var tierWeights = processor.GetWeights(WeightTags.Tier);
+        var tierWeights = waveDataController.GetWeights(WeightTags.Tier);
         string rolledTierString = RandomFromDict(tierWeights);
         
         int rolledGrade = 1;
@@ -104,25 +221,49 @@ public class ShopSystem : MonoBehaviour
         if (rolledType == null) return null;
 
         // 3. 筛选候选池 (符合品阶 + 类型 + 锁)
-        var allProps = PropDataController.Instance.GetAllProps();
-        int targetPropType = (rolledType == "Weapon") ? 2 : 1;
+        List<IShopPurchasable> candidates;
+        bool isWeaponType = rolledType == "Weapon";
 
-        var candidates = allProps.Where(p => 
-            p.grade == rolledGrade && 
-            p.prop_type == targetPropType &&
-            !purchasedItemIds.Contains(p.id) && 
-            !excludedItemIds.Contains(p.id)
-        ).Cast<IShopPurchasable>().ToList();
-
-        // 4. 保底机制
-        if (candidates.Count == 0)
+        if (isWeaponType)
         {
-            Debug.LogWarning($"[保底] 品阶{rolledGrade}类型{rolledType}为空，回退到品阶1全池");
-            candidates = allProps.Where(p => p.grade == 1 && !purchasedItemIds.Contains(p.id) && !excludedItemIds.Contains(p.id)).Cast<IShopPurchasable>().ToList();
-            if (candidates.Count == 0) return null;
+            candidates = GetWeaponCandidates(rolledGrade);
+            if (candidates.Count == 0)
+            {
+                candidates = GetWeaponCandidates(1);
+            }
+
+            if (candidates.Count == 0)
+            {
+                Debug.LogWarning("[保底] 武器池完全为空，切换到道具池");
+                candidates = GetPropCandidates(rolledGrade);
+                if (candidates.Count == 0)
+                {
+                    candidates = GetPropCandidates(1);
+                }
+            }
+        }
+        else
+        {
+            candidates = GetPropCandidates(rolledGrade);
+            if (candidates.Count == 0)
+            {
+                candidates = GetPropCandidates(1);
+            }
+
+            if (candidates.Count == 0)
+            {
+                Debug.LogWarning("[保底] 道具池完全为空，切换到武器池");
+                candidates = GetWeaponCandidates(rolledGrade);
+                if (candidates.Count == 0)
+                {
+                    candidates = GetWeaponCandidates(1);
+                }
+            }
         }
 
-        // 5. 流派加权抽取
+        // 4. 流派加权抽取
+        if (candidates.Count == 0) return null;
+
         _itemPool.Clear();
         foreach (var item in candidates)
         {
@@ -140,6 +281,26 @@ public class ShopSystem : MonoBehaviour
         return _itemPool.Pick();
     }
 
+    private List<IShopPurchasable> GetWeaponCandidates(int grade)
+    {
+        var allWeapons = WeaponDataController.Instance.GetAllWeapons();
+        return allWeapons.Where(w =>
+            w.grade == grade &&
+            !purchasedWeaponIds.Contains(w.id) &&
+            !excludedWeaponIds.Contains(w.id)
+        ).Cast<IShopPurchasable>().ToList();
+    }
+
+    private List<IShopPurchasable> GetPropCandidates(int grade)
+    {
+        var allProps = PropDataController.Instance.GetAllProps();
+        return allProps.Where(p =>
+            p.grade == grade &&
+            !purchasedItemIds.Contains(p.id) &&
+            !excludedItemIds.Contains(p.id)
+        ).Cast<IShopPurchasable>().ToList();
+    }
+
     public void PurchaseCurrentItem()
     {
         if (_lastRolledItem == null) return;
@@ -147,11 +308,29 @@ public class ShopSystem : MonoBehaviour
         _lastRolledItem = null;
     }
 
-    private void PurchaseItem(IShopPurchasable item)
+    public void PurchaseItem(IShopPurchasable item)
     {
+        if (item == null) return;
+        if (!EnsureInitialized()) return;
+
+        if (!RunStateManager.Instance.SpendGold(item.Price))
+        {
+            Debug.LogWarning($"[ShopSystem] 金币不足，无法购买: {item.Name}，价格: {item.Price}，当前金币: {RunStateManager.Instance.Gold}");
+            return;
+        }
+
         Debug.Log($"<color=yellow>[购买成功] 获得了: {item.Name}</color>");
-        _playerInventory.AddProp(item.ItemId);
-        OnItemPurchased(item);
+
+        if (item is WeaponShopData weaponData)
+        {
+            _weaponInventory.AddWeapon(weaponData.id);
+            OnWeaponPurchased(weaponData);
+        }
+        else
+        {
+            _playerInventory.AddProp(item.ItemId);
+            OnItemPurchased(item);
+        }
     }
 
     private void OnItemPurchased(IShopPurchasable item)
@@ -160,6 +339,15 @@ public class ShopSystem : MonoBehaviour
         if (item.ExcludeIds != null)
         {
             foreach (var id in item.ExcludeIds) excludedItemIds.Add(id);
+        }
+    }
+
+    private void OnWeaponPurchased(WeaponShopData weapon)
+    {
+        if (weapon.is_unique) purchasedWeaponIds.Add(weapon.id);
+        if (weapon.exclude_ids != null)
+        {
+            foreach (var id in weapon.exclude_ids) excludedWeaponIds.Add(id);
         }
     }
 
@@ -179,6 +367,13 @@ public class ShopSystem : MonoBehaviour
     public void GoToNextWave()
     {
         currentWave++;
-        processor.UpdateCurrentWaveData(currentLevel, currentWave);
+        if (useRunState)
+        {
+            RunStateManager.Instance.SetWave(currentLevel, currentWave);
+        }
+        if (waveDataController != null)
+        {
+            waveDataController.UpdateCurrentWaveData(currentLevel, currentWave);
+        }
     }
 }

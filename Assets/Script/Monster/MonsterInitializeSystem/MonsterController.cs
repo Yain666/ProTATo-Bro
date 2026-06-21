@@ -91,6 +91,7 @@ public class MonsterController : MonoBehaviour
         {
             level = level,
             bigWave = bigWave,
+            duration = mainRaw.Duration,
             maxMonsterCap = mainRaw.MaxMonsterCap,
             randomSpawnCD = mainRaw.RandomSpawnCD,
             subWaves = new List<RuntimeSubWaveConfig>(),

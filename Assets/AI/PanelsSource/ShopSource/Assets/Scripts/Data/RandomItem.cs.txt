@@ -1,0 +1,5 @@
+
+public interface RandomItem
+{
+    CommodityType c_type { get; }
+}

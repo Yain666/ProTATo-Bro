@@ -3,6 +3,39 @@
     "WaveId": 101,
     "Level": 1,
     "BigWave": 1,
+    "Duration": 10.0,
+    "MaxMonsterCap": 7,
+    "RandomSpawnCD": 2.0
+  },
+  {
+    "WaveId": 102,
+    "Level": 1,
+    "BigWave": 2,
+    "Duration": 30.0,
+    "MaxMonsterCap": 7,
+    "RandomSpawnCD": 2.0
+  },
+  {
+    "WaveId": 103,
+    "Level": 1,
+    "BigWave": 3,
+    "Duration": 30.0,
+    "MaxMonsterCap": 7,
+    "RandomSpawnCD": 2.0
+  },
+  {
+    "WaveId": 104,
+    "Level": 1,
+    "BigWave": 4,
+    "Duration": 30.0,
+    "MaxMonsterCap": 7,
+    "RandomSpawnCD": 2.0
+  },
+  {
+    "WaveId": 105,
+    "Level": 1,
+    "BigWave": 5,
+    "Duration": 30.0,
     "MaxMonsterCap": 7,
     "RandomSpawnCD": 2.0
   }

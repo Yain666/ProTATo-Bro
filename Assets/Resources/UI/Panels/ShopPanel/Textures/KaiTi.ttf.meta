@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: f688ee4ed9bc3cd4e92a5e2b98418552
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - KaiTi_GB2312
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: b445c858c3301b647b7caec0e668d204, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
