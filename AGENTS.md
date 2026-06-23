@@ -1,28 +1,42 @@
 # OpenCode Repo Instructions - 2DModulePlay
 
 ## 协作约定
-- 所有面向用户的输出使用中文；当前用户重点在 Unity 武器系统，先读现有代码再改。
-- 这是 Unity `2021.3.16f1c1` 项目；不要手改或扫描 `Library/`、`Temp/`、`Obj/`、`Build/`、`Logs/`、`.vs/` 等 `.gitignore` 排除目录。
+- 中文输出。Unity 2021.3.16f1c1。不扫描 Library/Temp/Obj/Build/Logs/.vs。
+- `Assets/AI/WeaponSystem/WeaponSystemUnityGuide`和`GodotRefs`是迁移参考；`weaponAnimation`文件夹不用读。
+- 商店刷新(roll/权重/去重/互斥)很敏感，动之前先确认。
 
-## 高价值入口
-- 主逻辑集中在 `Assets/Script`；当前武器链路优先看 `Assets/Script/Weapon`、`Assets/Script/System/WeaponSystem`、`Assets/Script/Data/WeaponData.cs`、`Assets/Script/Data/WeaponShopData.cs`。
-- 商店与购买链路在 `Assets/Script/System/RandomShopSystem/Scripts/ShopSystem.cs`、`Assets/Script/UI/Panels/ShopPanel`、`Assets/Script/Interface/IShopPurchasable.cs`。
-- 全局运行状态由 `RunStateManager` 管理；波次/商店通过 `EventSystem.OnWaveStarted`、`EventSystem.OnShopOpened` 同步。
-- UI 通过 `UIManager.OpenPanel<T>("UI/Panels/PanelName", UILayer.X)` 从 `Resources` 加载并缓存，面板脚本继承 `BasePanel`。
+## 武器系统架构
+- 运行时链路：`WeaponManager` → `WeaponInstance` → `Bullet`/`WeaponHitbox`。数据：`WeaponData : ScriptableObject`。
+- 数据驱动通用prefab：`WeaponManager`用`genericWeaponPrefab`(为空则`Resources/Weapons/GenericWeapon`)。加武器只建数据不走prefab。
+- 近战命中盒按贴图自动包裹(`autoHitboxFromSprite`)，侦测范围用`CurrentMeleeReach()`不用`WeaponData.range`。
+- 攻速/范围：`attackSpeedMultiplier`/`rangeMultiplier`同时联动冷却、动作、距离；玩家`AttackSpeed`/`Range`属性自动叠加。
+- 远程Muzzle→Projectile→Recoil；近战Hitbox窗口；Bullet支持穿透/弹射；横扫(Sweep)命中盒与刀身同步旋转。
+- Godot换算：100px=1单位、60tick=1秒。
 
-## 配置与资源
-- 配置源路径是 `Assets/Data/Excel/*.xlsx`，运行时 JSON 在 `Assets/Resources/Config/DataJson/*.json`。
-- Excel 转 JSON 只能在 Unity 编辑器菜单 `Tools/一键批量转换 Excel 为 Json` 执行；脚本 `Assets/Editor/ExcelToJsonConverter.cs` 当前写死本机绝对路径。
-- 配置控制器继承 `BasicDataController<TKey,TValue>`，通过 `ResourceManager.Instance.GetJsonText("Config/DataJson/Name")` 加载；`Resources.Load` 路径不要带 `.json` 或其他后缀。
-- 新增武器/道具商店配置时保持 `tags`、`exclude_ids`、`is_unique` 字段与 `IShopPurchasable` 对齐，避免刷新筛选和互斥失效。
+## 伤害链路
+命中→`DamageUtil.ResolveDamage`：有玩家属性系统走`CharacterStatus.CalculateOutputDamage`(含DamagePercent+近远程加成+暴击叠加固定2倍)；无则退回武器自带暴击。击退走`IKnockbackable`(Monster实现)。
 
-## 武器/商店现状
-- 运行时武器实体仍使用 `WeaponData : ScriptableObject`，`WeaponManager` 从 `startingWeapons` 实例化武器 prefab；商店售卖数据使用 JSON 反序列化的 `WeaponShopData`。
-- `WeaponInstance` 远程攻击依赖 `PoolManager.Instance.GetObj(projectilePrefab, position, rotation)`，目标搜索依赖 `Enemy` Layer 的 `Physics2D.OverlapCircleAll`。
-- `WeaponInventory` 目前是 `ShopSystem` 内部临时容器，最大 6 格；不要误以为它已和场景里的 `WeaponManager` 自动同步。
-- `ShopSystem.EnsureInitialized()` 需要 `WaveDataController`、`PlayerStatus`、`PropDataController`、`WeaponDataController`、`BasicPropertiesDataController`；测试面板会在缺失时创建部分 mock。
+## 武器数据链路 (Excel→JSON)
+- `WeaponData.xlsx`(3行表头)→JSON→`WeaponDataController<WeaponConfigData>`。
+- `WeaponConfigData`一表两用：商店读`IShopPurchasable`字段，武器读战斗字段。贴图/子弹存Resources相对路径。
+- `WeaponRuntimeFactory.Build(cfg, grade)`按品阶缩放数值。品阶系数在`WeaponGrade`(方案A全局系数，神话=4)。
 
-## 验证方式
-- 仓库没有已提交的测试脚本或 asmdef；优先用 Unity 打开相关场景验证。
-- 商店 UI 快速验证场景是 `Assets/AI/UITest/ShopPanel/ShopPanelTest.unity`；可用菜单 `Tools/UI/Create ShopPanel Test Scene` 和 `Tools/UI/Create ShopPanel Prefab` 重建测试资源。
-- 项目使用 `com.unity.test-framework`，但当前没有现成测试；不要凭空添加测试框架或 CI 命令。
+## 品阶/进化/刷取
+- 武器刷取：roll出品阶T→区间候选(`min_grade≤T≤max_grade`)→`ShopRolledWeapon`包装(带按阶价格)。
+- 背包：`WeaponInventory`存`OwnedWeapon{id,grade}`，同id同阶自动合体进化(`ResolveMerges`)到神话封顶。
+- 场景同步：购买/合体→`OnWeaponsChanged`→`WeaponManager`按背包快照重建；开局主动读`ShopSystem.OwnedWeapons`对齐。
+- 道具品阶固定不变。
+
+## 挂点布局
+- 1~6把用Brotato原版固定Attach坐标(100px=1单位,Y翻转)，>6把圆形分布。
+
+## 武器测试菜单
+- `Tools/WeaponSystem/Create Runtime Resources`：生成GenericWeapon+子弹到Resources。
+- `Tools/WeaponSystem/Create Test Scene(JSON-driven)`：startingWeaponIds场景(需先转Excel)。
+- `Tools/WeaponSystem/Create Weapon System Test Scene`：手搓SO纯行为场景。
+
+## 配置/商店/入口
+- Excel→JSON仅Unity菜单`Tools/一键批量转换Excel为Json`执行。
+- `ResourceManager.GetJsonText("Config/DataJson/Name")`加载；`Resources.Load`不带后缀。
+- `RunStateManager`管理run级状态；UI走`UIManager.OpenPanel<T>()`。
+- 挂起：方案B(每阶配表)；战斗/商店拆场景时背包需提升为run级。

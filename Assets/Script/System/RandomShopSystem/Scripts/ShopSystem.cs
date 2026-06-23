@@ -33,7 +33,7 @@ public class ShopSystem : MonoBehaviour
 
     public IShopPurchasable LastRolledItem => _lastRolledItem;
     public IReadOnlyList<int> OwnedPropIds => _playerInventory?.OwnedPropIds;
-    public IReadOnlyList<int> OwnedWeaponIds => _weaponInventory?.OwnedWeaponIds;
+    public IReadOnlyList<OwnedWeapon> OwnedWeapons => _weaponInventory?.Owned;
 
     void Start()
     {
@@ -150,7 +150,7 @@ public class ShopSystem : MonoBehaviour
         {
             foreach (int weaponId in _weaponInventory.OwnedWeaponIds)
             {
-                WeaponShopData weaponData = WeaponDataController.Instance.GetWeaponData(weaponId);
+                WeaponConfigData weaponData = WeaponDataController.Instance.GetWeaponData(weaponId);
                 if (weaponData != null && weaponData.tags != null)
                 {
                     tags.AddRange(weaponData.tags);
@@ -285,10 +285,10 @@ public class ShopSystem : MonoBehaviour
     {
         var allWeapons = WeaponDataController.Instance.GetAllWeapons();
         return allWeapons.Where(w =>
-            w.grade == grade &&
+            grade >= w.min_grade && grade <= w.max_grade &&
             !purchasedWeaponIds.Contains(w.id) &&
             !excludedWeaponIds.Contains(w.id)
-        ).Cast<IShopPurchasable>().ToList();
+        ).Select(w => (IShopPurchasable)new ShopRolledWeapon(w, grade)).ToList();
     }
 
     private List<IShopPurchasable> GetPropCandidates(int grade)
@@ -313,21 +313,36 @@ public class ShopSystem : MonoBehaviour
         if (item == null) return;
         if (!EnsureInitialized()) return;
 
-        if (!RunStateManager.Instance.SpendGold(item.Price))
+        if (item is ShopRolledWeapon rolled)
         {
-            Debug.LogWarning($"[ShopSystem] 金币不足，无法购买: {item.Name}，价格: {item.Price}，当前金币: {RunStateManager.Instance.Gold}");
-            return;
-        }
+            WeaponConfigData weaponData = rolled.Config;
+            int grade = rolled.RolledGrade;
 
-        Debug.Log($"<color=yellow>[购买成功] 获得了: {item.Name}</color>");
+            if (!_weaponInventory.CanAccept(weaponData.id, grade))
+            {
+                Debug.LogWarning($"[ShopSystem] 武器槽已满且无法合体，无法购买: {item.Name}");
+                return;
+            }
+            if (!RunStateManager.Instance.SpendGold(item.Price))
+            {
+                Debug.LogWarning($"[ShopSystem] 金币不足，无法购买: {item.Name}");
+                return;
+            }
 
-        if (item is WeaponShopData weaponData)
-        {
-            _weaponInventory.AddWeapon(weaponData.id);
+            Debug.Log($"<color=yellow>[购买成功] 获得了: {item.Name} (品阶 {grade})</color>");
+            _weaponInventory.AddWeapon(weaponData.id, grade);
             OnWeaponPurchased(weaponData);
+            EventSystem.PublishWeaponsChanged(_weaponInventory.Owned);
         }
         else
         {
+            if (!RunStateManager.Instance.SpendGold(item.Price))
+            {
+                Debug.LogWarning($"[ShopSystem] 金币不足，无法购买: {item.Name}");
+                return;
+            }
+
+            Debug.Log($"<color=yellow>[购买成功] 获得了: {item.Name}</color>");
             _playerInventory.AddProp(item.ItemId);
             OnItemPurchased(item);
         }
@@ -342,7 +357,7 @@ public class ShopSystem : MonoBehaviour
         }
     }
 
-    private void OnWeaponPurchased(WeaponShopData weapon)
+    private void OnWeaponPurchased(WeaponConfigData weapon)
     {
         if (weapon.is_unique) purchasedWeaponIds.Add(weapon.id);
         if (weapon.exclude_ids != null)

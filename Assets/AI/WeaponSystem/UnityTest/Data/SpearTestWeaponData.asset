@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bdacbe78f84ea84483ae88bcaeebe77, type: 3}
+  m_Name: SpearTestWeaponData
+  m_EditorClassIdentifier: 
+  weaponName: SpearTestWeaponData
+  icon: {fileID: 0}
+  weaponPrefab: {fileID: 916548882737251747, guid: 329eed34e574e9d49ac0a4aeabb3bdbc, type: 3}
+  projectilePrefab: {fileID: 0}
+  inGameSprite: {fileID: 0}
+  spriteLocalPosition: {x: 0, y: 0}
+  muzzleLocalPosition: {x: 0, y: 0}
+  damage: 18
+  attackSpeed: 0.9
+  range: 2.2
+  isMelee: 1
+  critChance: 0
+  critMultiplier: 2
+  knockback: 0
+  piercing: 1
+  bounce: 0
+  weaponKind: 1
+  recoilDistance: 0.2
+  recoilDuration: 0.08
+  flySpeed: 9
+  hitLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  maxLifeTime: 2
+  destroyOnHit: 1
+  meleeAttackType: 0
+  autoHitboxFromSprite: 0
+  hitboxSize: {x: 1.5, y: 0.45}
+  hitboxOffset: {x: 0.9, y: 0}
+  meleeThrustDistance: 0
+  meleeWindupDuration: 0.06
+  meleeActiveDuration: 0.12
+  meleeReturnDuration: 0.1
+  dealDamageOnReturn: 0
+  tags: []

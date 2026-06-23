@@ -126,13 +126,13 @@ public class ShopPanel : BasePanel
 
     private void RefreshWeaponSlots()
     {
-        var ownedIds = shopSystem != null ? shopSystem.OwnedWeaponIds : null;
+        var owned = shopSystem != null ? shopSystem.OwnedWeapons : null;
         for (int i = 0; i < weaponSlots.Count; i++)
         {
-            if (ownedIds != null && i < ownedIds.Count)
+            if (owned != null && i < owned.Count)
             {
-                WeaponShopData weaponData = WeaponDataController.Instance.GetWeaponData(ownedIds[i]);
-                weaponSlots[i].SetWeapon(weaponData, i + 1);
+                WeaponConfigData weaponData = WeaponDataController.Instance.GetWeaponData(owned[i].id);
+                weaponSlots[i].SetWeapon(weaponData, owned[i].grade, i + 1);
             }
             else
             {

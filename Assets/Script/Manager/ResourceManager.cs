@@ -61,7 +61,7 @@ public class ResourceManager : MonoBehaviour
         if (string.IsNullOrEmpty(path)) return null;
         
         // 1. 如果缓存里有，直接返回
-        if (prefabCache.ContainsKey(path))
+        if (iconCache.ContainsKey(path))
         {
             return iconCache[path];
         }

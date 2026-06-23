@@ -14,6 +14,7 @@ public class ShopItemSlot : MonoBehaviour
 
     private IShopPurchasable _item;
     private ShopPanel _owner;
+    private bool _purchased;
 
     private static Sprite _cachedYellowBg;
     private static Sprite YellowBg => _cachedYellowBg ?? (_cachedYellowBg = Resources.Load<Sprite>("UI/Panels/ShopPanel/Textures/card_bg_yellow"));
@@ -35,7 +36,11 @@ public class ShopItemSlot : MonoBehaviour
         gameObject.SetActive(hasItem);
         if (!hasItem) return;
 
-        bool isWeapon = item is WeaponShopData;
+        // 每次重新绑定（刷新/新波次）复位购买态
+        _purchased = false;
+        if (buyButton != null) buyButton.interactable = true;
+
+        bool isWeapon = item is ShopRolledWeapon;
         Color gradeColor = GetGradeColor(item.Grade);
 
         SetText(nameText, item.Name);
@@ -55,13 +60,16 @@ public class ShopItemSlot : MonoBehaviour
 
         if (iconImage != null)
         {
-            iconImage.enabled = false;
-            PropData propData = item as PropData;
+            ShopRolledWeapon rolled = item as ShopRolledWeapon;
             string iconPath = null;
-            if (propData != null && !string.IsNullOrEmpty(propData.icon))
-                iconPath = propData.icon;
-            else if (isWeapon)
-                iconPath = "UI/Panels/ShopPanel/Textures/slot_empty";
+            if (rolled != null && !string.IsNullOrEmpty(rolled.Config.icon_path))
+                iconPath = rolled.Config.icon_path;
+            else
+            {
+                PropData propData = item as PropData;
+                if (propData != null && !string.IsNullOrEmpty(propData.icon))
+                    iconPath = propData.icon;
+            }
 
             if (!string.IsNullOrEmpty(iconPath))
             {
@@ -72,13 +80,16 @@ public class ShopItemSlot : MonoBehaviour
                     iconImage.color = Color.white;
                     iconImage.enabled = true;
                 }
+                else iconImage.enabled = false;
             }
+            else iconImage.enabled = false;
         }
     }
 
     public void UpdatePriceColor(int currentGold)
     {
         if (_item == null) return;
+        if (_purchased) return; // 已购买不覆盖
 
         bool canAfford = currentGold >= _item.Price || _item.Price <= 0;
         SetText(priceText, canAfford ? $"$ {_item.Price}" : $"<color=#FF4444>$ {_item.Price}</color>");
@@ -86,11 +97,9 @@ public class ShopItemSlot : MonoBehaviour
 
     public void SetPurchased()
     {
+        _purchased = true;
         if (buyButton != null)
-        {
             buyButton.interactable = false;
-        }
-
         SetText(priceText, "已购买");
     }
 
@@ -106,7 +115,7 @@ public class ShopItemSlot : MonoBehaviour
     {
         StringBuilder builder = new StringBuilder();
 
-        WeaponShopData weaponData = item as WeaponShopData;
+        WeaponConfigData weaponData = (item as ShopRolledWeapon)?.Config;
         if (weaponData != null)
         {
             builder.Append(weaponData.weapon_type);

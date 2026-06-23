@@ -129,25 +129,18 @@ public class CharacterStatus : MonoBehaviour
     /// </summary>
     /// <param name="weaponBaseDamage">武器的基础伤害</param>
     /// <param name="scalingType">伤害缩放类型（近战、远程、属性）</param>
-    public int CalculateOutputDamage(int weaponBaseDamage, PropertyType scalingType)
+    /// <param name="extraCritChance">武器自带的额外暴击率(0~100)，叠加到角色暴击率上；默认 0 不影响怪物调用</param>
+    public int CalculateOutputDamage(int weaponBaseDamage, PropertyType scalingType, float extraCritChance = 0f)
     {
-        // 1. 通用伤害百分比加成 (DamagePercent)
         float damagePercent = 1.0f + (GetPropertyValue(PropertyType.DamagePercent) / 100.0f);
-        
-        // 2. 专属伤害固定值加成 (Melee/Ranged/Elemental)
         float flatBonus = GetPropertyValue(scalingType);
-
-        // 公式：(武器基础伤害 + 固定加成) * 通用百分比加成
         int finalOutput = Mathf.RoundToInt((weaponBaseDamage + flatBonus) * damagePercent);
-        
-        // 3. 暴击判定
-        float critChance = GetPropertyValue(PropertyType.CritChance);
+        float critChance = GetPropertyValue(PropertyType.CritChance) + extraCritChance;
         if (UnityEngine.Random.Range(0, 100) < critChance)
         {
-            finalOutput = Mathf.RoundToInt(finalOutput * 2.0f); // 土豆兄弟默认双倍暴击
+            finalOutput = Mathf.RoundToInt(finalOutput * 2.0f);
             Debug.Log("<color=red>暴击！</color>");
         }
-
         return finalOutput;
     }
 

@@ -8,33 +8,26 @@ public class WeaponSlotView : MonoBehaviour
 
     public void SetEmpty(int index)
     {
-        if (labelText != null)
-        {
-            labelText.text = $"Weapon {index}";
-        }
+        if (labelText != null) labelText.text = $"Weapon {index}";
+        if (iconImage != null) iconImage.enabled = false;
+    }
 
+    public void SetWeapon(WeaponConfigData weaponData, int grade, int index)
+    {
+        if (weaponData == null) { SetEmpty(index); return; }
+        if (labelText != null) labelText.text = $"{weaponData.name} T{grade}";
         if (iconImage != null)
         {
-            iconImage.enabled = false;
+            Sprite icon = LoadIcon(weaponData.icon_path);
+            if (icon != null) { iconImage.sprite = icon; iconImage.color = Color.white; iconImage.enabled = true; }
+            else iconImage.enabled = false;
         }
     }
 
-    public void SetWeapon(WeaponShopData weaponData, int index)
+    private static Sprite LoadIcon(string path)
     {
-        if (weaponData == null)
-        {
-            SetEmpty(index);
-            return;
-        }
-
-        if (labelText != null)
-        {
-            labelText.text = weaponData.name;
-        }
-
-        if (iconImage != null)
-        {
-            iconImage.enabled = false;
-        }
+        if (string.IsNullOrEmpty(path)) return null;
+        if (ResourceManager.Instance != null) return ResourceManager.Instance.GetIcon(path);
+        return Resources.Load<Sprite>(path);
     }
 }

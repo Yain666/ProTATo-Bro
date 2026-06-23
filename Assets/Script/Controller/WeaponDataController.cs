@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using UnityEngine;
 
-public class WeaponDataController : BasicDataController<int, WeaponShopData>
+public class WeaponDataController : BasicDataController<int, WeaponConfigData>
 {
     public static WeaponDataController Instance { get; private set; }
 
@@ -14,18 +13,9 @@ public class WeaponDataController : BasicDataController<int, WeaponShopData>
         }
     }
 
-    protected override int GetItemKey(WeaponShopData item)
-    {
-        return item.id;
-    }
+    protected override int GetItemKey(WeaponConfigData item) => item.id;
 
-    public WeaponShopData GetWeaponData(int weaponId)
-    {
-        return GetDataByKey(weaponId);
-    }
+    public WeaponConfigData GetWeaponData(int weaponId) => GetDataByKey(weaponId);
 
-    public IReadOnlyList<WeaponShopData> GetAllWeapons()
-    {
-        return dataList.AsReadOnly();
-    }
+    public IReadOnlyList<WeaponConfigData> GetAllWeapons() => dataList.AsReadOnly();
 }

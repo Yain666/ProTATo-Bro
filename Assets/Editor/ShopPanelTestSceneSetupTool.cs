@@ -204,8 +204,13 @@ public static class ShopPanelTestSceneSetupTool
         background.color = new Color(0.35f, 0.4f, 0.45f, 1f);
 
         WeaponSlotView slot = slotObject.AddComponent<WeaponSlotView>();
+
+        slot.iconImage = CreateImage(slotObject.transform, "Image_Icon", new Vector2(0f, 16f), new Vector2(56f, 56f));
+        slot.iconImage.color = new Color(1f, 1f, 1f, 0f);
+        slot.iconImage.enabled = false;
+
         slot.labelText = CreateText(slotObject.transform, "Text_Label", $"Weapon {index + 1}",
-            Vector2.zero, new Vector2(110f, 70f), 16, TextAnchor.MiddleCenter, font);
+            new Vector2(0f, -36f), new Vector2(112f, 32f), 15, TextAnchor.MiddleCenter, font);
         return slot;
     }
 

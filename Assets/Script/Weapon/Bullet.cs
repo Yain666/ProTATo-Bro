@@ -1,118 +1,115 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// 我还是觉得外部实时注入的方法有点消耗性能, 很多操作我觉得还是走
-// 未来
-public class Bullet : MonoBehaviour ,IPoolable
+public class Bullet : MonoBehaviour, IPoolable
 {
-    #region --- Properties ---
     public WeaponData weaponData;
+    public CharacterStatus ownerStatus;
     private float lifeTimer;
     private Action<GameObject> returnAction;
-    private Vector2 lastPos; // 用于射线检测防穿墙
-    #endregion --- Properties ---
-    
-    public void SetReturnAction(Action<GameObject> action) { this.returnAction = action; }
+    private Vector2 lastPos;
+    private readonly HashSet<Collider2D> _hitTargets = new HashSet<Collider2D>();
+    private int _pierceLeft;
+    private int _bounceLeft;
+
+    public void SetReturnAction(Action<GameObject> action) { returnAction = action; }
 
     public void OnSpawn()
     {
-        // 类似于 Start，每次从池里出来时重置状态
-        // 1. 速度 2. 碰撞框 3. 外观以及特效
         lifeTimer = 0f;
         lastPos = transform.position;
-        //rb.velocity = transform.right * weaponData.flySpeed;
+        _hitTargets.Clear();
+        _pierceLeft = weaponData != null ? Mathf.Max(1, weaponData.piercing) : 1;
+        _bounceLeft = weaponData != null ? Mathf.Max(0, weaponData.bounce) : 0;
     }
+
+    public void OnRecycle() { }
 
     private void Update()
     {
-        // 1. 计算这一帧的移动量
         float moveDistance = weaponData.flySpeed * Time.deltaTime;
         Vector3 nextPos = transform.position + transform.right * moveDistance;
+        Vector2 dir = (Vector2)nextPos - lastPos;
+        float dist = dir.magnitude;
 
-        // 2. 射线检测防穿墙 (从上一帧位置 到 预测的下一帧位置)
-        // 这种方式比单纯向前发射射线更精准，能覆盖移动的路径
-        Vector2 direction = (Vector2)nextPos - lastPos;
-        float dist = direction.magnitude;
-
-        // 使用 RaycastAll 或 Raycast 确保检测到 Enemy 层
-        RaycastHit2D hit = Physics2D.Raycast(lastPos, direction.normalized, dist, weaponData.hitLayers);
-        
-        if (hit.collider != null)
+        if (dist > 0.0001f)
         {
-            // 击中了
-            transform.position = hit.point;
-            HandleHit(hit.collider);
-        }
-        else
-        {
-            // 没击中，移动
-            transform.position = nextPos;
-        }
-
-        // 更新上一帧位置
-        lastPos = transform.position;
-
-        // 3. 寿命检测
-        lifeTimer += Time.deltaTime;
-        if (lifeTimer >= weaponData.maxLifeTime)
-        {
-            Despawn();
-        }
-    }
-
-    public void OnRecycle()
-    {
-        // 类似于 OnDisable，如果需要重置刚体速度等可以在这做
-    }
-    
-    private void HandleHit(Collider2D other)
-    {
-        // 尝试获取伤害接口（这里假设你有一个通用的 IDamageable）
-        var target = other.GetComponent<IDamageable>();
-        if (target != null)
-        {
-            target.TakeDamage(weaponData.damage);
-            // TODO: 未来做击中特效的地方
-        }
-
-        if (weaponData.destroyOnHit)
-        {
-            Despawn();
-        }
-        
-        // 如果撞击到了怪物
-        if (other.CompareTag("Monster"))
-        {
-            Monster monster = other.GetComponent<Monster>();
-            if (monster != null)
+            RaycastHit2D[] hits = Physics2D.RaycastAll(lastPos, dir.normalized, dist, weaponData.hitLayers);
+            Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+            foreach (var hit in hits)
             {
-                int damage = (int)weaponData.damage;
-                // 注入伤害给怪物
-                monster.ApplyDamage(damage);
+                if (hit.collider == null || _hitTargets.Contains(hit.collider)) continue;
+                if (ProcessHit(hit.collider, hit.point)) return;
             }
         }
+
+        transform.position = nextPos;
+        lastPos = transform.position;
+
+        lifeTimer += Time.deltaTime;
+        if (lifeTimer >= weaponData.maxLifeTime) Despawn();
     }
 
-    // 未来做击中特效的地方
-    private void HitSpecial()
+    private bool ProcessHit(Collider2D other, Vector2 point)
     {
-        
+        ApplyDamageAndKnockback(other);
+        _hitTargets.Add(other);
+        _pierceLeft--;
+        if (_pierceLeft > 0) return false;
+
+        if (_bounceLeft > 0)
+        {
+            Transform next = FindBounceTarget(point);
+            if (next != null)
+            {
+                _bounceLeft--;
+                _pierceLeft = 1;
+                transform.position = point;
+                transform.right = ((Vector2)next.position - point).normalized;
+                lastPos = point;
+                return true;
+            }
+        }
+
+        transform.position = point;
+        Despawn();
+        return true;
     }
-    
-    // 执行回收
+
+    private Transform FindBounceTarget(Vector2 from)
+    {
+        float radius = Mathf.Max(3f, weaponData.range);
+        Collider2D[] candidates = Physics2D.OverlapCircleAll(from, radius, weaponData.hitLayers);
+        Transform best = null;
+        float bestDist = Mathf.Infinity;
+        foreach (var c in candidates)
+        {
+            if (c == null || _hitTargets.Contains(c)) continue;
+            float d = Vector2.Distance(from, c.transform.position);
+            if (d < bestDist) { bestDist = d; best = c.transform; }
+        }
+        return best;
+    }
+
+    private void ApplyDamageAndKnockback(Collider2D other)
+    {
+        bool isCrit;
+        float dmg = DamageUtil.ResolveDamage(ownerStatus, weaponData, out isCrit);
+        IDamageable d = other.GetComponent<IDamageable>();
+        if (d != null) d.TakeDamage(dmg);
+        if (other.CompareTag("Monster"))
+        {
+            Monster m = other.GetComponent<Monster>();
+            if (m != null) m.ApplyDamage(Mathf.RoundToInt(dmg));
+        }
+        DamageUtil.ApplyKnockback(other, transform.position, weaponData.knockback);
+        if (isCrit) Debug.Log($"<color=orange>[暴击] {other.name} 受到 {dmg}</color>");
+    }
+
     private void Despawn()
     {
-        // 如果有回城卷轴，就使用；如果没有（比如场景里直接摆放的），就销毁
-        if (returnAction != null)
-        {
-            returnAction.Invoke(this.gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        if (returnAction != null) returnAction.Invoke(gameObject);
+        else Destroy(gameObject);
     }
-    
 }

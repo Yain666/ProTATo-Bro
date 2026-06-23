@@ -1,38 +1,58 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+
+public struct OwnedWeapon { public int id; public int grade; public OwnedWeapon(int id, int grade) { this.id = id; this.grade = grade; } }
 
 public class WeaponInventory
 {
-    private readonly HashSet<int> _ownedWeaponIds = new HashSet<int>();
-    private readonly List<int> _ownedWeaponList = new List<int>();
-    private const int MaxWeaponSlots = 6;
+    private readonly List<OwnedWeapon> _owned = new List<OwnedWeapon>();
+    private const int MaxSlots = 6;
 
-    public IReadOnlyList<int> OwnedWeaponIds => _ownedWeaponList;
-    public int SlotCount => _ownedWeaponList.Count;
-    public int MaxSlots => MaxWeaponSlots;
-    public bool IsFull => _ownedWeaponList.Count >= MaxWeaponSlots;
+    public IReadOnlyList<OwnedWeapon> Owned => _owned;
+    public IEnumerable<int> OwnedWeaponIds => _owned.Select(w => w.id);
+    public int SlotCount => _owned.Count;
+    public bool IsFull => _owned.Count >= MaxSlots;
 
-    public bool AddWeapon(int weaponId)
+    public bool HasWeapon(int id) => _owned.Exists(w => w.id == id);
+
+    public bool CanAccept(int id, int grade)
     {
-        if (IsFull)
-        {
-            Debug.LogWarning("[WeaponInventory] 武器槽已满，无法添加。");
-            return false;
-        }
+        if (!IsFull) return true;
+        return grade < WeaponGrade.Mythic && _owned.Exists(w => w.id == id && w.grade == grade);
+    }
 
-        if (_ownedWeaponIds.Contains(weaponId))
-        {
-            Debug.LogWarning($"[WeaponInventory] 已拥有该武器 ID: {weaponId}");
-            return false;
-        }
-
-        _ownedWeaponIds.Add(weaponId);
-        _ownedWeaponList.Add(weaponId);
+    public bool AddWeapon(int id, int grade)
+    {
+        grade = WeaponGrade.Clamp(grade);
+        if (!CanAccept(id, grade)) return false;
+        _owned.Add(new OwnedWeapon(id, grade));
+        ResolveMerges();
         return true;
     }
 
-    public bool HasWeapon(int weaponId)
+    private void ResolveMerges()
     {
-        return _ownedWeaponIds.Contains(weaponId);
+        bool merged = true;
+        while (merged)
+        {
+            merged = false;
+            for (int i = 0; i < _owned.Count && !merged; i++)
+            {
+                if (_owned[i].grade >= WeaponGrade.Mythic) continue;
+                for (int j = i + 1; j < _owned.Count; j++)
+                {
+                    if (_owned[j].id != _owned[i].id || _owned[j].grade != _owned[i].grade) continue;
+                    int id = _owned[i].id;
+                    int upgraded = _owned[i].grade + 1;
+                    _owned.RemoveAt(j);
+                    _owned.RemoveAt(i);
+                    _owned.Add(new OwnedWeapon(id, upgraded));
+                    Debug.Log($"<color=cyan>[合体进化] 武器 {id} 升到品阶 {upgraded}</color>");
+                    merged = true;
+                    break;
+                }
+            }
+        }
     }
 }

@@ -4,8 +4,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(MonsterStatus))]
-public class Monster : MonoBehaviour
+public class Monster : MonoBehaviour, IKnockbackable
 {
+    [Header("击退")]
+    public float knockbackScale = 0.15f;
+    public float knockbackDuration = 0.2f;
+    private float _knockbackTimer;
+    private Vector2 _knockbackVelocity;
+
     [Header("Components")] 
     public MonsterStatus status; // 属性系统组件
     
@@ -86,6 +92,24 @@ public class Monster : MonoBehaviour
     protected virtual void FixedUpdate()
     {
         StateMachine.FixedUpdate();
+        TickKnockback();
+    }
+
+    public void ApplyKnockback(Vector2 direction, float force)
+    {
+        if (rb == null) return;
+        _knockbackVelocity = direction.normalized * (force * knockbackScale);
+        _knockbackTimer = knockbackDuration;
+    }
+
+    public bool IsKnockedBack => _knockbackTimer > 0f;
+
+    private void TickKnockback()
+    {
+        if (_knockbackTimer <= 0f) return;
+        _knockbackTimer -= Time.fixedDeltaTime;
+        if (rb != null) rb.velocity = _knockbackVelocity;
+        _knockbackVelocity = Vector2.Lerp(_knockbackVelocity, Vector2.zero, Time.fixedDeltaTime * 8f);
     }
     
     /// <summary>
@@ -134,6 +158,7 @@ public class Monster : MonoBehaviour
 
     public virtual void MoveTowards(Vector2 targetPos, float speed)
     {
+        if (_knockbackTimer > 0f) return;
         if (rb != null)
         {
             Vector2 direction = (targetPos - (Vector2)transform.position).normalized;
@@ -143,6 +168,7 @@ public class Monster : MonoBehaviour
 
     public virtual void StopMovement()
     {
+        if (_knockbackTimer > 0f) return;
         if (rb != null)
         {
             rb.velocity = Vector2.zero;
