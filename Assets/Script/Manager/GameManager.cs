@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,9 +10,11 @@ public class GameManager : MonoBehaviour
     [Header("Run")]
     public int defaultLevel = 1;
     public bool autoStartOnSceneLoad = false;
+    public string battleSceneName = "Demo";
 
     private bool _dataInitialized;
     private bool _runStarted;
+    private bool _pendingBattleStart;
     private int _currentLevel;
 
     private void Awake()
@@ -24,6 +27,12 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     void Start()
@@ -60,9 +69,15 @@ public class GameManager : MonoBehaviour
         DataInit();
         _currentLevel = Mathf.Max(1, level);
         _runStarted = true;
+        _pendingBattleStart = true;
 
-        MonsterInit(_currentLevel);
-        StartNextWave();
+        if (SceneManager.GetActiveScene().name != battleSceneName)
+        {
+            SceneManager.LoadScene(battleSceneName);
+            return;
+        }
+
+        BeginBattleStart();
     }
 
     public void StartNextWave()
@@ -74,6 +89,23 @@ public class GameManager : MonoBehaviour
         }
 
         MonsterNextWave();
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (_pendingBattleStart && scene.name == battleSceneName)
+        {
+            BeginBattleStart();
+        }
+    }
+
+    private void BeginBattleStart()
+    {
+        if (!_pendingBattleStart) return;
+
+        _pendingBattleStart = false;
+        MonsterInit(_currentLevel);
+        StartNextWave();
     }
 
     private void MonsterInit(int level)
