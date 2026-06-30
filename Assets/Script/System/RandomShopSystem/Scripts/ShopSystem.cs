@@ -28,6 +28,7 @@ public class ShopSystem : MonoBehaviour
     private WeaponInventory _weaponInventory;
     private IShopPurchasable _lastRolledItem;
     private bool _isInitialized;
+    private readonly LuckTierWeightDataController _luckTierWeightController = new LuckTierWeightDataController();
     
     private WeightedRandomPool<IShopPurchasable> _itemPool = new WeightedRandomPool<IShopPurchasable>();
 
@@ -59,6 +60,7 @@ public class ShopSystem : MonoBehaviour
         PropDataController.Initialize();
         WeaponDataController.Initialize();
         BasicPropertiesDataController.Instance.Init();
+        _luckTierWeightController.LoadData("Config/DataJson/LuckTierWeightData");
         
         // 2. 接入真实玩家背包；测试场景的临时玩家由 ShopSystemTester 负责创建
         var status = FindObjectOfType<Script.Player.PlayerComponent.PlayerStatus>();
@@ -92,6 +94,7 @@ public class ShopSystem : MonoBehaviour
     private void InitShop()
     {
         SyncWaveFromRunState();
+        SyncWeaponInventoryFromRunContext();
         if (waveDataController != null)
         {
             waveDataController.UpdateCurrentWaveData(currentLevel, currentWave);
@@ -122,9 +125,55 @@ public class ShopSystem : MonoBehaviour
     private void HandleShopOpened()
     {
         SyncWaveFromRunState();
+        SyncWeaponInventoryFromRunContext();
         if (waveDataController != null)
         {
             waveDataController.UpdateCurrentWaveData(currentLevel, currentWave);
+        }
+    }
+
+    private void SyncWeaponInventoryFromRunContext()
+    {
+        if (_weaponInventory == null)
+        {
+            _weaponInventory = new WeaponInventory();
+        }
+
+        if (_weaponInventory.Owned.Count > 0)
+        {
+            return;
+        }
+
+        int initialWeaponId = 0;
+        int initialGrade = 1;
+
+        RunStartContext context = RunStartContext.Instance;
+        if (context != null && context.SelectedWeaponId > 0)
+        {
+            initialWeaponId = context.SelectedWeaponId;
+        }
+
+        if (initialWeaponId <= 0)
+        {
+            WeaponManager weaponManager = FindObjectOfType<WeaponManager>();
+            if (weaponManager != null && weaponManager.startingWeaponIds != null && weaponManager.startingWeaponIds.Count > 0)
+            {
+                initialWeaponId = weaponManager.startingWeaponIds[0];
+            }
+        }
+
+        if (initialWeaponId <= 0)
+        {
+            return;
+        }
+
+        if (_weaponInventory.AddWeapon(initialWeaponId, initialGrade))
+        {
+            WeaponConfigData initialWeapon = WeaponDataController.Instance.GetWeaponData(initialWeaponId);
+            if (initialWeapon != null)
+            {
+                OnWeaponPurchased(initialWeapon);
+            }
         }
     }
 
@@ -211,7 +260,7 @@ public class ShopSystem : MonoBehaviour
         var typeWeights = waveDataController.GetWeights(WeightTags.ObjectType);
         string rolledType = RandomFromDict(typeWeights); 
 
-        var tierWeights = waveDataController.GetWeights(WeightTags.Tier);
+        var tierWeights = GetAdjustedTierWeights();
         string rolledTierString = RandomFromDict(tierWeights);
         
         int rolledGrade = 1;
@@ -348,6 +397,42 @@ public class ShopSystem : MonoBehaviour
         }
     }
 
+    public int GetWeaponRecyclePrice(int weaponId, int grade)
+    {
+        WeaponConfigData weaponData = WeaponDataController.Instance.GetWeaponData(weaponId);
+        if (weaponData == null)
+        {
+            return 0;
+        }
+
+        int totalPrice = weaponData.coin * WeaponGrade.PriceMultiplier(grade);
+        return Mathf.Max(1, Mathf.FloorToInt(totalPrice * 0.4f));
+    }
+
+    public bool SellWeaponAt(int slotIndex, out int refundGold)
+    {
+        refundGold = 0;
+        if (!EnsureInitialized() || _weaponInventory == null)
+        {
+            return false;
+        }
+
+        if (!_weaponInventory.RemoveWeaponAt(slotIndex, out OwnedWeapon removed))
+        {
+            return false;
+        }
+
+        refundGold = GetWeaponRecyclePrice(removed.id, removed.grade);
+        if (refundGold > 0)
+        {
+            RunStateManager.Instance.AddGold(refundGold);
+        }
+
+        RebuildWeaponPurchaseState();
+        EventSystem.PublishWeaponsChanged(_weaponInventory.Owned);
+        return true;
+    }
+
     private void OnItemPurchased(IShopPurchasable item)
     {
         if (item.IsUnique) purchasedItemIds.Add(item.ItemId);
@@ -366,12 +451,68 @@ public class ShopSystem : MonoBehaviour
         }
     }
 
+    private void RebuildWeaponPurchaseState()
+    {
+        purchasedWeaponIds.Clear();
+        excludedWeaponIds.Clear();
+
+        if (_weaponInventory == null)
+        {
+            return;
+        }
+
+        IReadOnlyList<OwnedWeapon> owned = _weaponInventory.Owned;
+        for (int i = 0; i < owned.Count; i++)
+        {
+            WeaponConfigData weapon = WeaponDataController.Instance.GetWeaponData(owned[i].id);
+            if (weapon != null)
+            {
+                OnWeaponPurchased(weapon);
+            }
+        }
+    }
+
     private string RandomFromDict(Dictionary<string, int> dict)
     {
         if (dict == null || dict.Count == 0) return null;
         WeightedRandomPool<string> pool = new WeightedRandomPool<string>();
         foreach (var kvp in dict) pool.Add(kvp.Key, kvp.Value);
         return pool.Pick();
+    }
+
+    private Dictionary<string, int> GetAdjustedTierWeights()
+    {
+        Dictionary<string, int> baseWeights = waveDataController.GetWeights(WeightTags.Tier);
+        if (baseWeights == null)
+        {
+            return null;
+        }
+
+        Dictionary<string, int> result = new Dictionary<string, int>(baseWeights);
+        int playerLuck = 0;
+        if (_playerInventory != null)
+        {
+            var status = FindObjectOfType<Script.Player.PlayerComponent.PlayerStatus>();
+            if (status != null)
+            {
+                playerLuck = Mathf.RoundToInt(status.GetPropertyValue(PropertyType.Luck));
+            }
+        }
+
+        LuckTierWeightData row = _luckTierWeightController.GetAllData().Find(item => item.Matches(playerLuck));
+        if (row == null)
+        {
+            return result;
+        }
+
+        Dictionary<string, int> deltas = row.BuildTierDeltaMap();
+        foreach (var kvp in deltas)
+        {
+            int current = result.ContainsKey(kvp.Key) ? result[kvp.Key] : 0;
+            result[kvp.Key] = Mathf.Max(0, current + kvp.Value);
+        }
+
+        return result;
     }
 
     public List<string> GetCurrentPlayerTagsSnapshot()

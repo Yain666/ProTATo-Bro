@@ -4,8 +4,14 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour, IPoolable
 {
+    private static Sprite _defaultProjectileSprite;
+
     public WeaponData weaponData;
     public CharacterStatus ownerStatus;
+    [SerializeField] private Transform visualRoot;
+    [SerializeField] private SpriteRenderer visualSpriteRenderer;
+    [SerializeField] private BoxCollider2D hitCollider;
+    [SerializeField] private BulletColliderGlow debugColliderGlow;
     private float lifeTimer;
     private Action<GameObject> returnAction;
     private Vector2 lastPos;
@@ -15,16 +21,128 @@ public class Bullet : MonoBehaviour, IPoolable
 
     public void SetReturnAction(Action<GameObject> action) { returnAction = action; }
 
+    public void Initialize(WeaponData data, CharacterStatus status)
+    {
+        weaponData = data;
+        ownerStatus = status;
+        CacheReferences();
+        ApplySpawnState();
+    }
+
     public void OnSpawn()
     {
+        CacheReferences();
+        ApplySpawnState();
+    }
+
+    private void ApplySpawnState()
+    {
+        if (weaponData != null && weaponData.projectileBehaviorType == ProjectileBehaviorType.Explosive)
+        {
+            enabled = false;
+            return;
+        }
+
+        enabled = true;
         lifeTimer = 0f;
         lastPos = transform.position;
         _hitTargets.Clear();
-        _pierceLeft = weaponData != null ? Mathf.Max(1, weaponData.piercing) : 1;
-        _bounceLeft = weaponData != null ? Mathf.Max(0, weaponData.bounce) : 0;
+        _pierceLeft = DamageUtil.ResolveProjectilePierce(ownerStatus, weaponData);
+        _bounceLeft = DamageUtil.ResolveProjectileBounce(ownerStatus, weaponData);
+        ApplyVisualConfig();
     }
 
     public void OnRecycle() { }
+
+    private void CacheReferences()
+    {
+        if (visualRoot == null)
+        {
+            Transform child = transform.Find("Visual");
+            visualRoot = child != null ? child : transform;
+        }
+
+        if (visualSpriteRenderer == null && visualRoot != null)
+        {
+            visualSpriteRenderer = visualRoot.GetComponent<SpriteRenderer>();
+        }
+
+        if (hitCollider == null)
+        {
+            hitCollider = GetComponent<BoxCollider2D>();
+            if (hitCollider == null)
+            {
+                hitCollider = gameObject.AddComponent<BoxCollider2D>();
+                hitCollider.isTrigger = true;
+            }
+        }
+
+        if (debugColliderGlow == null)
+        {
+            debugColliderGlow = GetComponent<BulletColliderGlow>();
+            if (debugColliderGlow == null)
+            {
+                debugColliderGlow = gameObject.AddComponent<BulletColliderGlow>();
+            }
+        }
+    }
+
+    private void ApplyVisualConfig()
+    {
+        if (weaponData == null)
+        {
+            return;
+        }
+
+        if (visualRoot != null)
+        {
+            Vector2 scale = weaponData.projectileVisualScale;
+            if (Mathf.Approximately(scale.x, 0f)) scale.x = 1f;
+            if (Mathf.Approximately(scale.y, 0f)) scale.y = 1f;
+            visualRoot.localScale = new Vector3(scale.x, scale.y, 1f);
+        }
+
+        if (visualSpriteRenderer != null)
+        {
+            if (weaponData.projectileSprite != null)
+            {
+                visualSpriteRenderer.enabled = true;
+                visualSpriteRenderer.sprite = weaponData.projectileSprite;
+                visualSpriteRenderer.color = weaponData.projectileTint;
+            }
+            else
+            {
+                visualSpriteRenderer.enabled = true;
+                visualSpriteRenderer.sprite = GetDefaultProjectileSprite();
+                visualSpriteRenderer.color = weaponData.projectileTint;
+            }
+        }
+
+        if (hitCollider != null)
+        {
+            Vector2 size = weaponData.projectileColliderSize;
+            if (size.x <= 0f) size.x = 0.24f;
+            if (size.y <= 0f) size.y = 0.12f;
+            hitCollider.size = size;
+        }
+
+        if (debugColliderGlow != null && hitCollider != null)
+        {
+            debugColliderGlow.Sync(hitCollider.size);
+        }
+    }
+
+    private static Sprite GetDefaultProjectileSprite()
+    {
+        if (_defaultProjectileSprite != null)
+        {
+            return _defaultProjectileSprite;
+        }
+
+        Texture2D texture = Texture2D.whiteTexture;
+        _defaultProjectileSprite = Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), texture.width);
+        return _defaultProjectileSprite;
+    }
 
     private void Update()
     {
@@ -53,6 +171,7 @@ public class Bullet : MonoBehaviour, IPoolable
 
     private bool ProcessHit(Collider2D other, Vector2 point)
     {
+        WeaponEffectUtility.PlayImpactFlash(weaponData, point, transform.right);
         ApplyDamageAndKnockback(other);
         _hitTargets.Add(other);
         _pierceLeft--;
@@ -103,6 +222,7 @@ public class Bullet : MonoBehaviour, IPoolable
             Monster m = other.GetComponent<Monster>();
             if (m != null) m.ApplyDamage(Mathf.RoundToInt(dmg));
         }
+        DamageUtil.TryApplyLifeSteal(ownerStatus, DamageUtil.LifeStealSource.Projectile);
         DamageUtil.ApplyKnockback(other, transform.position, weaponData.knockback);
         if (isCrit) Debug.Log($"<color=orange>[暴击] {other.name} 受到 {dmg}</color>");
     }

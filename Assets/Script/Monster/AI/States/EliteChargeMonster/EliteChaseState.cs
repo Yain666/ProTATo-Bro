@@ -5,7 +5,6 @@ using UnityEngine;
 public class EliteChaseState : MonsterChaseState
 {
     private EliteChargeMonster elite;
-    private int animIndex = Animator.StringToHash("Speed");
 
     public EliteChaseState(Monster monster) : base(monster)
     {
@@ -21,10 +20,5 @@ public class EliteChaseState : MonsterChaseState
     public override void FixedUpdate()
     {
         base.FixedUpdate();
-
-        if (monster.Anim != null && monster.rb != null)
-        {
-            monster.Anim.SetFloat(animIndex,monster.rb.velocity.magnitude);
-        }
     }
 }

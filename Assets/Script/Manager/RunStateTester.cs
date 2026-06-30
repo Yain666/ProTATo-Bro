@@ -117,7 +117,7 @@ public class RunStateTester : MonoBehaviour
     public void SpendTestGold()
     {
         bool success = StateManager.SpendGold(goldAmount);
-        Debug.Log($"[RunStateTester] SpendGold({goldAmount}) success: {success}");
+        //Debug.Log($"[RunStateTester] SpendGold({goldAmount}) success: {success}");
     }
 
     [ContextMenu("RunState/Add Test Experience")]
@@ -134,6 +134,6 @@ public class RunStateTester : MonoBehaviour
 
     private void HandleStateChanged(RunState state)
     {
-        Debug.Log($"[RunStateTester] Level:{state.currentLevel} Wave:{state.currentWave} PlayerLevel:{state.playerLevel} Exp:{state.playerExperience} Gold:{state.gold}");
+        //Debug.Log($"[RunStateTester] Level:{state.currentLevel} Wave:{state.currentWave} PlayerLevel:{state.playerLevel} Exp:{state.playerExperience} Gold:{state.gold}");
     }
 }

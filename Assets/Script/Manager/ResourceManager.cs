@@ -74,6 +74,18 @@ public class ResourceManager : MonoBehaviour
             iconCache.Add(path, loadedIcon);
             return loadedIcon;
         }
+
+        Texture2D loadedTexture = Resources.Load<Texture2D>(path);
+        if (loadedTexture != null)
+        {
+            Sprite runtimeSprite = Sprite.Create(
+                loadedTexture,
+                new Rect(0f, 0f, loadedTexture.width, loadedTexture.height),
+                new Vector2(0.5f, 0.5f),
+                100f);
+            iconCache.Add(path, runtimeSprite);
+            return runtimeSprite;
+        }
         else
         {
             Debug.LogError($"[ResourceManager] 找不到路径下的Icon: {path}");

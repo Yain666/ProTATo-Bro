@@ -568,7 +568,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: 260
   m_MinHeight: -1
-  m_PreferredWidth: -1
+  m_PreferredWidth: 260
   m_PreferredHeight: -1
   m_FlexibleWidth: 0.46
   m_FlexibleHeight: -1
@@ -1073,7 +1073,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: RUN OPTIONS
+  m_Text: "\u6E38\u620F\u9009\u9879"
 --- !u!1 &1717488211260023564
 GameObject:
   m_ObjectHideFlags: 0
@@ -1151,6 +1151,7 @@ GameObject:
   - component: {fileID: 6666783660200237253}
   - component: {fileID: 3302943218426539160}
   - component: {fileID: 759693806031176665}
+  - component: {fileID: 2754105370508240396}
   m_Layer: 0
   m_Name: BackButton
   m_TagString: Untagged
@@ -1177,7 +1178,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 35, y: 0}
+  m_AnchoredPosition: {x: 32, y: 0}
   m_SizeDelta: {x: 220, y: 64}
   m_Pivot: {x: 0, y: 0}
 --- !u!222 &6666783660200237253
@@ -1201,14 +1202,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.1, g: 0.1, b: 0.1, a: 0.85}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 05ff3cb50c50a564493f8a261ec3999c, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1239,10 +1240,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0.1, g: 0.1, b: 0.1, a: 0.85}
-    m_HighlightedColor: {r: 0.18, g: 0.18, b: 0.18, a: 0.9}
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.6901961, g: 0.6901961, b: 0.6901961, a: 0.9}
     m_PressedColor: {r: 0.25, g: 0.25, b: 0.25, a: 0.95}
-    m_SelectedColor: {r: 0.18, g: 0.18, b: 0.18, a: 0.9}
+    m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
     m_DisabledColor: {r: 0.1, g: 0.1, b: 0.1, a: 0.4}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -1262,6 +1263,19 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2754105370508240396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1774674444536209248}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c1b5aabd4c617b43b2b6f4e1fe1602b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioName: UI/ButtonClick
 --- !u!1 &1959257440921976953
 GameObject:
   m_ObjectHideFlags: 0
@@ -1360,6 +1374,7 @@ GameObject:
   - component: {fileID: 2520016480629072947}
   - component: {fileID: 1705494771802583562}
   - component: {fileID: 1343221294535155197}
+  - component: {fileID: 8403232252180784151}
   m_Layer: 0
   m_Name: StartButton
   m_TagString: Untagged
@@ -1383,11 +1398,11 @@ RectTransform:
   m_Father: {fileID: 3564359618250606652}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 48, y: 18}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -34, y: 17}
   m_SizeDelta: {x: 240, y: 64}
-  m_Pivot: {x: 0, y: 0}
+  m_Pivot: {x: 1, y: 0}
 --- !u!222 &2520016480629072947
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1409,14 +1424,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.1, g: 0.1, b: 0.1, a: 0.85}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: accb681dd6ef65541a675f50dd28704f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1447,10 +1462,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0.1, g: 0.1, b: 0.1, a: 0.85}
-    m_HighlightedColor: {r: 0.18, g: 0.18, b: 0.18, a: 0.9}
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.6901961, g: 0.6901961, b: 0.6901961, a: 0.9}
     m_PressedColor: {r: 0.25, g: 0.25, b: 0.25, a: 0.95}
-    m_SelectedColor: {r: 0.18, g: 0.18, b: 0.18, a: 0.9}
+    m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
     m_DisabledColor: {r: 0.1, g: 0.1, b: 0.1, a: 0.4}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -1470,6 +1485,19 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &8403232252180784151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2191833922864921954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c1b5aabd4c617b43b2b6f4e1fe1602b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioName: UI/ButtonClick
 --- !u!1 &2292680806193912622
 GameObject:
   m_ObjectHideFlags: 0
@@ -2534,7 +2562,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: MENU_BACK
+  m_Text: "\u8FD4\u56DE"
 --- !u!1 &5197269435483027909
 GameObject:
   m_ObjectHideFlags: 0
@@ -2614,7 +2642,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: START
+  m_Text: "\u9009\u62E9"
 --- !u!1 &5515729432641842238
 GameObject:
   m_ObjectHideFlags: 0
@@ -2694,7 +2722,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: CHARACTER_SELECTION
+  m_Text: "\u89D2\u8272\u9009\u62E9"
 --- !u!1 &5804411657889839206
 GameObject:
   m_ObjectHideFlags: 0
@@ -2855,7 +2883,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: CHARACTERS
+  m_Text: "\u89D2\u8272\u5217\u8868"
 --- !u!114 &7856333989647138463
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3275,8 +3303,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 16, y: 0}
-  m_SizeDelta: {x: 24, y: 24}
+  m_AnchoredPosition: {x: 37, y: 0}
+  m_SizeDelta: {x: 36, y: 34}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &3791575286061152659
 CanvasRenderer:
@@ -3670,7 +3698,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: RECORDS
+  m_Text: "\u8BB0\u5F55"
 --- !u!1 &7927021211551869047
 GameObject:
   m_ObjectHideFlags: 0

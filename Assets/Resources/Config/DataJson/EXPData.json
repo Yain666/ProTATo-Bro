@@ -1,0 +1,188 @@
+﻿[
+  {
+    "level": 0,
+    "expRequired": 16,
+    "totalExpRequired": 0,
+    "isMaxLevel": false
+  },
+  {
+    "level": 1,
+    "expRequired": 25,
+    "totalExpRequired": 16,
+    "isMaxLevel": false
+  },
+  {
+    "level": 2,
+    "expRequired": 36,
+    "totalExpRequired": 41,
+    "isMaxLevel": false
+  },
+  {
+    "level": 3,
+    "expRequired": 49,
+    "totalExpRequired": 77,
+    "isMaxLevel": false
+  },
+  {
+    "level": 4,
+    "expRequired": 64,
+    "totalExpRequired": 126,
+    "isMaxLevel": false
+  },
+  {
+    "level": 5,
+    "expRequired": 81,
+    "totalExpRequired": 190,
+    "isMaxLevel": false
+  },
+  {
+    "level": 6,
+    "expRequired": 100,
+    "totalExpRequired": 271,
+    "isMaxLevel": false
+  },
+  {
+    "level": 7,
+    "expRequired": 121,
+    "totalExpRequired": 371,
+    "isMaxLevel": false
+  },
+  {
+    "level": 8,
+    "expRequired": 144,
+    "totalExpRequired": 492,
+    "isMaxLevel": false
+  },
+  {
+    "level": 9,
+    "expRequired": 169,
+    "totalExpRequired": 636,
+    "isMaxLevel": false
+  },
+  {
+    "level": 10,
+    "expRequired": 196,
+    "totalExpRequired": 805,
+    "isMaxLevel": false
+  },
+  {
+    "level": 11,
+    "expRequired": 225,
+    "totalExpRequired": 1001,
+    "isMaxLevel": false
+  },
+  {
+    "level": 12,
+    "expRequired": 256,
+    "totalExpRequired": 1226,
+    "isMaxLevel": false
+  },
+  {
+    "level": 13,
+    "expRequired": 289,
+    "totalExpRequired": 1482,
+    "isMaxLevel": false
+  },
+  {
+    "level": 14,
+    "expRequired": 324,
+    "totalExpRequired": 1771,
+    "isMaxLevel": false
+  },
+  {
+    "level": 15,
+    "expRequired": 361,
+    "totalExpRequired": 2095,
+    "isMaxLevel": false
+  },
+  {
+    "level": 16,
+    "expRequired": 400,
+    "totalExpRequired": 2456,
+    "isMaxLevel": false
+  },
+  {
+    "level": 17,
+    "expRequired": 441,
+    "totalExpRequired": 2856,
+    "isMaxLevel": false
+  },
+  {
+    "level": 18,
+    "expRequired": 484,
+    "totalExpRequired": 3297,
+    "isMaxLevel": false
+  },
+  {
+    "level": 19,
+    "expRequired": 529,
+    "totalExpRequired": 3781,
+    "isMaxLevel": false
+  },
+  {
+    "level": 20,
+    "expRequired": 576,
+    "totalExpRequired": 4310,
+    "isMaxLevel": false
+  },
+  {
+    "level": 21,
+    "expRequired": 625,
+    "totalExpRequired": 4886,
+    "isMaxLevel": false
+  },
+  {
+    "level": 22,
+    "expRequired": 676,
+    "totalExpRequired": 5511,
+    "isMaxLevel": false
+  },
+  {
+    "level": 23,
+    "expRequired": 729,
+    "totalExpRequired": 6187,
+    "isMaxLevel": false
+  },
+  {
+    "level": 24,
+    "expRequired": 784,
+    "totalExpRequired": 6916,
+    "isMaxLevel": false
+  },
+  {
+    "level": 25,
+    "expRequired": 841,
+    "totalExpRequired": 7700,
+    "isMaxLevel": false
+  },
+  {
+    "level": 26,
+    "expRequired": 900,
+    "totalExpRequired": 8541,
+    "isMaxLevel": false
+  },
+  {
+    "level": 27,
+    "expRequired": 961,
+    "totalExpRequired": 9441,
+    "isMaxLevel": false
+  },
+  {
+    "level": 28,
+    "expRequired": 1024,
+    "totalExpRequired": 10402,
+    "isMaxLevel": false
+  },
+  {
+    "level": 29,
+    "expRequired": 1089,
+    "totalExpRequired": 11426,
+    "isMaxLevel": false
+  },
+  {
+    "level": 30,
+    "expRequired": 0,
+    "totalExpRequired": 12515,
+    "isMaxLevel": true
+  }
+]

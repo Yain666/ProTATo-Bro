@@ -9,6 +9,7 @@ public class CharacterData
     public string job;
     public string characterName;
     public string characterImage;
+    public int[] startingWeaponIds;
     public int[] attrIds;
     public int[] attrData;
 }

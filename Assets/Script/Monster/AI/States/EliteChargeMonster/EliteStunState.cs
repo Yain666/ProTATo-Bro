@@ -7,8 +7,6 @@ public class EliteStunState : MonsterState
     private EliteChargeMonster elite;
     private float timer;
     private float stunDuration;
-    private int stunIndex = Animator.StringToHash("Stun");
-    private int recoverIndex = Animator.StringToHash("Recover");
 
     public EliteStunState(Monster monster) : base(monster)
     {
@@ -19,11 +17,7 @@ public class EliteStunState : MonsterState
     {
         monster.StopMovement();
         timer = 0f;
-        
-        if (monster.Anim != null)
-        {
-            monster.Anim.SetTrigger(stunIndex);
-        }
+        monster.VisualController?.PlayStun();
         
         float attackSpeed = monster.status.GetPropertyValue(PropertyType.AttackSpeed);
         stunDuration = monster.status.GetActualCooldown(1.5f);
@@ -39,12 +33,5 @@ public class EliteStunState : MonsterState
         }
     }
     
-    public override void Exit()
-    {
-        // 【新增】：眩晕硬直结束时，触发“苏醒”或重置，准备切回走路
-        if (monster.Anim != null)
-        {
-            monster.Anim.SetTrigger(recoverIndex);
-        }
-    }
+    public override void Exit() {}
 }

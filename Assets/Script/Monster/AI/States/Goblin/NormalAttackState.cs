@@ -14,12 +14,7 @@ public class NormalAttackState : MonsterState
     public override void Enter()
     {
         monster.StopMovement();
-
-        // 【新增】：触发攻击动画
-        if (monster.Anim != null)
-        {
-            monster.Anim.SetTrigger("Attack");
-        }
+        monster.VisualController?.PlayMeleeWindup();
 
         // 结算伤害
         ExecuteMeleeAttack();

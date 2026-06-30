@@ -131,7 +131,22 @@ public enum PropertyType
     /// <summary>
     /// 消耗品回复 (consumable_heal)
     /// </summary>
-    ConsumableHeal = 21
+    ConsumableHeal = 21,
+
+    /// <summary>
+    /// 穿透次数 (projectile_pierce)
+    /// </summary>
+    ProjectilePierce = 22,
+
+    /// <summary>
+    /// 弹射次数 (projectile_bounce)
+    /// </summary>
+    ProjectileBounce = 23,
+
+    /// <summary>
+    /// 爆炸范围增值 (explosion_range_percent)
+    /// </summary>
+    ExplosionRangePercent = 24
 }
 
 public enum AudioTrack

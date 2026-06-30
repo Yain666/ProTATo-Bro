@@ -6,7 +6,7 @@ public class RunState
 {
     public int currentLevel = 1;
     public int currentWave = 0;
-    public int playerLevel = 1;
+    public int playerLevel = 0;
     public int playerExperience = 0;
     public int gold = 0;
 }
@@ -44,6 +44,7 @@ public class RunStateManager : MonoBehaviour
     public int Gold => state.gold;
 
     public event Action<RunState> OnStateChanged;
+    public event Action<int> OnPlayerLevelUp;
 
     private void Awake()
     {
@@ -71,7 +72,7 @@ public class RunStateManager : MonoBehaviour
     {
         state.currentLevel = Mathf.Max(1, level);
         state.currentWave = 0;
-        state.playerLevel = 1;
+        state.playerLevel = 0;
         state.playerExperience = 0;
         state.gold = 0;
         NotifyChanged();
@@ -104,14 +105,50 @@ public class RunStateManager : MonoBehaviour
     public void AddPlayerExperience(int amount)
     {
         if (amount <= 0) return;
+
         state.playerExperience += amount;
+        RefreshPlayerLevelFromExperience();
         NotifyChanged();
     }
 
     public void SetPlayerLevel(int level)
     {
-        state.playerLevel = Mathf.Max(1, level);
+        state.playerLevel = Mathf.Max(0, level);
         NotifyChanged();
+    }
+
+    public int GetCurrentLevelRequiredExperience()
+    {
+        EXPDataController.Initialize();
+
+        EXPData currentLevelData = EXPDataController.Instance.GetLevelData(state.playerLevel);
+        if (currentLevelData == null)
+        {
+            return 0;
+        }
+
+        return Mathf.Max(0, currentLevelData.expRequired);
+    }
+
+    public int GetCurrentLevelProgressExperience()
+    {
+        EXPDataController.Initialize();
+
+        EXPData currentLevelData = EXPDataController.Instance.GetLevelData(state.playerLevel);
+        if (currentLevelData == null)
+        {
+            return state.playerExperience;
+        }
+
+        return Mathf.Max(0, state.playerExperience - currentLevelData.totalExpRequired);
+    }
+
+    public bool IsPlayerAtMaxLevel()
+    {
+        EXPDataController.Initialize();
+
+        EXPData currentLevelData = EXPDataController.Instance.GetLevelData(state.playerLevel);
+        return currentLevelData != null && currentLevelData.isMaxLevel;
     }
 
     private void HandleWaveStarted(int level, int wave)
@@ -122,5 +159,59 @@ public class RunStateManager : MonoBehaviour
     private void NotifyChanged()
     {
         OnStateChanged?.Invoke(state);
+    }
+
+    private void RefreshPlayerLevelFromExperience()
+    {
+        EXPDataController.Initialize();
+
+        var allLevels = EXPDataController.Instance.GetAllLevels();
+        if (allLevels == null || allLevels.Count == 0)
+        {
+            return;
+        }
+
+        int previousLevel = state.playerLevel;
+        int resolvedLevel = 0;
+        for (int i = 0; i < allLevels.Count; i++)
+        {
+            EXPData levelData = allLevels[i];
+            if (levelData == null) continue;
+            if (state.playerExperience < levelData.totalExpRequired)
+            {
+                break;
+            }
+
+            resolvedLevel = levelData.level;
+        }
+
+        state.playerLevel = resolvedLevel;
+
+        if (resolvedLevel > previousLevel)
+        {
+            EnsureLevelUpFlowManager();
+            for (int level = previousLevel + 1; level <= resolvedLevel; level++)
+            {
+                OnPlayerLevelUp?.Invoke(level);
+                LevelUpFlowManager.Instance?.QueueLevelUp(level);
+            }
+        }
+
+        EXPData currentLevelData = EXPDataController.Instance.GetLevelData(state.playerLevel);
+        if (currentLevelData != null && currentLevelData.isMaxLevel)
+        {
+            state.playerExperience = currentLevelData.totalExpRequired;
+        }
+    }
+
+    private void EnsureLevelUpFlowManager()
+    {
+        if (LevelUpFlowManager.Instance != null)
+        {
+            return;
+        }
+
+        GameObject managerObject = new GameObject("LevelUpFlowManager");
+        managerObject.AddComponent<LevelUpFlowManager>();
     }
 }

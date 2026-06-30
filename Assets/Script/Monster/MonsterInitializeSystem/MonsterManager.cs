@@ -7,6 +7,11 @@ public class MonsterManager : MonoBehaviour
     public static MonsterManager Instance { get; private set; }
     public float defaultWaveDuration = 60f;
 
+    public bool IsWaveRunning => _isWaveRunning;
+    public float CurrentWaveDuration => _waveDuration;
+    public float CurrentWaveElapsed => _waveTimer;
+    public float CurrentWaveTimeRemaining => Mathf.Max(0f, _waveDuration - _waveTimer);
+
     // 运行时所持有的该波次组装配置
     private RuntimeLevelWaveConfig _currentWaveConfig;
 
@@ -54,6 +59,10 @@ public class MonsterManager : MonoBehaviour
         if (_currentWaveConfig == null)
         {
             Debug.LogWarning("[MonsterManager] 所有大波次配置已完成或没有找到波次配置。");
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.ReturnToMainMenu();
+            }
             return;
         }
 
@@ -276,6 +285,25 @@ public class MonsterManager : MonoBehaviour
         RecycleActiveMonstersWithoutDrops();
         _currentWaveConfig = null;
         EventSystem.PublishWaveEnded(level, wave);
+    }
+
+    public void CleanupSceneForShop()
+    {
+        RecycleActiveMonstersWithoutDrops();
+
+        Monster[] monsters = FindObjectsOfType<Monster>(true);
+        for (int i = 0; i < monsters.Length; i++)
+        {
+            Monster monster = monsters[i];
+            if (monster == null || !monster.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            MonsterPool.Instance.RecycleMonster(monster);
+        }
+
+        ItemSpawner.ClearAllLootObjects();
     }
 
     private void RecycleActiveMonstersWithoutDrops()

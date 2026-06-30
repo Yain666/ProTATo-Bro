@@ -31,6 +31,19 @@ public class WeaponInventory
         return true;
     }
 
+    public bool RemoveWeaponAt(int index, out OwnedWeapon removed)
+    {
+        removed = default;
+        if (index < 0 || index >= _owned.Count)
+        {
+            return false;
+        }
+
+        removed = _owned[index];
+        _owned.RemoveAt(index);
+        return true;
+    }
+
     private void ResolveMerges()
     {
         bool merged = true;

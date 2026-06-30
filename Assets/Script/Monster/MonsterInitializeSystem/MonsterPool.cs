@@ -94,6 +94,7 @@ public class MonsterPool : MonoBehaviour
             if (prefab != null)
             {
                 GameObject go = Instantiate(prefab, position, Quaternion.identity);
+                go.SetActive(true);
                 monster = go.GetComponent<Monster>() ?? go.AddComponent<Monster>();
                 monster.MonsterName = monsterName;
             }

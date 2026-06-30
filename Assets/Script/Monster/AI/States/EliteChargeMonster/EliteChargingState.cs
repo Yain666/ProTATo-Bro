@@ -8,7 +8,6 @@ public class EliteChargingState : MonsterState
     private Vector2 direction;
     private float timer;
     private Rigidbody2D rb;
-    private int chargeIndex = Animator.StringToHash("Charge");
 
     public EliteChargingState(Monster monster) : base(monster)
     {
@@ -24,11 +23,7 @@ public class EliteChargingState : MonsterState
     public override void Enter()
     {
         timer = 0f;
-        
-        if (monster.Anim != null)
-        {
-            monster.Anim.SetTrigger(chargeIndex);
-        }
+        monster.VisualController?.PlayCharge(direction);
     }
 
     public override void FixedUpdate()
@@ -40,6 +35,7 @@ public class EliteChargingState : MonsterState
         if (rb != null)
         {
             rb.velocity = direction * (baseSpeed * elite.chargeSpeedMultiplier);
+            monster.VisualController?.UpdateChargeDirection(direction);
         }
 
         // 冲刺超时，进入普通疲劳眩晕

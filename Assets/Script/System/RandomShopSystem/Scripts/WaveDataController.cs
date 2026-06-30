@@ -21,7 +21,7 @@ public class WaveDataController : MonoBehaviour
     {
         _configController.LoadData(jsonPath);
         _isLoaded = true;
-        Debug.Log($"[WaveDataController] 成功加载商店波次权重配置，共 {_configController.GetAllData().Count} 行。");
+        //Debug.Log($"[WaveDataController] 成功加载商店波次权重配置，共 {_configController.GetAllData().Count} 行。");
     }
 
     public void UpdateCurrentWaveData(int level, int wave)
@@ -44,7 +44,7 @@ public class WaveDataController : MonoBehaviour
         _currentCache[WeightTags.ObjectType] = BuildWeightDictionary(row.objectTypeTags, row.objectTypeWeights);
         _currentCache[WeightTags.Tier] = BuildWeightDictionary(row.tierTags, row.tierWeights);
 
-        Debug.Log($"[WaveDataController] 缓存已更新为: 第 {level} 关 - 第 {wave} 波");
+        //Debug.Log($"[WaveDataController] 缓存已更新为: 第 {level} 关 - 第 {wave} 波");
     }
 
     public Dictionary<string, int> GetWeights(WeightTags tag)

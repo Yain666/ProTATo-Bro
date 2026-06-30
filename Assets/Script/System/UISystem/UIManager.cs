@@ -36,6 +36,7 @@ public class UIManager : MonoBehaviour
     public RectTransform topLayer;
 
     private readonly Dictionary<Type, BasePanel> _panelCache = new Dictionary<Type, BasePanel>();
+    private EventSystem _managedEventSystem;
 
     private void Awake()
     {
@@ -49,6 +50,16 @@ public class UIManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         EnsureUIRoot();
         EnsureUnityEventSystem();
+    }
+
+    private void OnEnable()
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += HandleSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= HandleSceneLoaded;
     }
 
     public T OpenPanel<T>(string panelPath = null, UILayer layer = UILayer.Panel, object args = null) where T : BasePanel
@@ -176,14 +187,6 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void EnsureUnityEventSystem()
-    {
-        if (UnityEngine.EventSystems.EventSystem.current != null) return;
-
-        GameObject eventSystemObject = new GameObject("UnityEventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(StandaloneInputModule));
-        DontDestroyOnLoad(eventSystemObject);
-    }
-
     private void EnsureResourceManager()
     {
         if (ResourceManager.Instance != null) return;
@@ -201,5 +204,55 @@ public class UIManager : MonoBehaviour
         rectTransform.offsetMax = Vector2.zero;
         rectTransform.localScale = Vector3.one;
         rectTransform.localRotation = Quaternion.identity;
+    }
+
+    private void EnsureUnityEventSystem()
+    {
+        EventSystem[] eventSystems = FindObjectsOfType<EventSystem>(true);
+        bool hasExternalEventSystem = false;
+
+        for (int i = 0; i < eventSystems.Length; i++)
+        {
+            EventSystem eventSystem = eventSystems[i];
+            if (eventSystem == null || eventSystem == _managedEventSystem) continue;
+
+            hasExternalEventSystem = true;
+            EnsureInputModule(eventSystem);
+            break;
+        }
+
+        if (hasExternalEventSystem)
+        {
+            if (_managedEventSystem != null)
+            {
+                Destroy(_managedEventSystem.gameObject);
+                _managedEventSystem = null;
+            }
+
+            return;
+        }
+
+        if (_managedEventSystem != null)
+        {
+            EnsureInputModule(_managedEventSystem);
+            return;
+        }
+
+        GameObject eventSystemObject = new GameObject("UnityEventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+        eventSystemObject.transform.SetParent(transform, false);
+        _managedEventSystem = eventSystemObject.GetComponent<EventSystem>();
+    }
+
+    private void HandleSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        EnsureUnityEventSystem();
+    }
+
+    private void EnsureInputModule(EventSystem eventSystem)
+    {
+        if (eventSystem == null) return;
+        if (eventSystem.GetComponent<BaseInputModule>() != null) return;
+
+        eventSystem.gameObject.AddComponent<StandaloneInputModule>();
     }
 }

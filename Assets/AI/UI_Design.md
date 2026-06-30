@@ -53,6 +53,15 @@
 - Prefab 默认加载路径：`Resources/UI/Panels/`
 - 源素材统一放在：`Assets/AI/PanelsSource/`
 - 实际制作出来的 UI 以项目现有系统为准，不直接照搬源工程脚本。
+- 所有 UI 默认使用中文文案；只有用户明确要求保留英文气质的词才允许英文，例如 `LEVEL UP`。
+- UI 优先使用可手调的 prefab；运行时代码只做兜底，不作为长期最终形态。
+
+## LevelUpgradesUI 最新约定
+- 参考图：`Assets/AI/UI.png`
+- 当前目标不是继续纯代码拼 UI，而是生成正式 `LevelUpgradesPanel.prefab` 后再人工微调。
+- 升级卡中图标与效果文字必须留出明显垂直间距，避免贴在一起。
+- 右侧属性栏中“主要属性/次要属性”标题要和下方属性行留出独立呼吸空间，尤其是“次要属性”。
+- `属性`、`主要属性`、`次要属性` 等默认中文；`LEVEL UP` 保留英文。
 
 ## 现有 UI 架构
 
@@ -480,6 +489,208 @@
 - 角色说明文案是否已有配置字段，当前 `CharacterData` 未体现；若没有，第一版只能先显示职业和属性列表。
 - `ZoneSelection`、`Endless`、`Ban System` 在当前项目是否已有正式后端逻辑，当前未确认，不应擅自伪造功能。
 
+## WeaponSelection 源素材分析
+
+### 源目录
+- `Assets/AI/PanelsSource/WeaponSelection/README.md`
+- `Assets/AI/PanelsSource/WeaponSelection/ui_assets/`
+- `Assets/AI/PanelsSource/WeaponSelection/weapon_icons/`
+- `Assets/AI/PanelsSource/WeaponSelection/scene_refs/`
+- `Assets/AI/PanelsSource/WeaponSelection/weapon_data_refs/`
+
+### 当前观察结果
+- 武器选择页位于角色选择之后、难度选择之前，是一个典型的“开局过渡选择页”。
+- 背景继续使用 `shop_background.png`，与角色选择、商店保持统一世界观。
+- 页面上半区是双详情布局：左侧角色详情、右侧当前聚焦武器详情。
+- 页面下半区是武器选择区，原始参考使用 `ScrollContainer + GridContainer + 96x96 inventory element`。
+- 底部武器格与角色选择格是同一套视觉语言，本质上都可以复用 `slot_empty` 风格底图和 Button 状态。
+- 选中与悬停反馈主要依赖 Button 主题和色块变化，而不是额外的独立特效贴图。
+- 单人模式下点击武器后会很快进入下一步，因此第一版更强调“聚焦预览 + 点击确认”而不是复杂的多选状态表现。
+
+## WeaponSelection 设计目标
+
+### 页面目标
+- 做一个项目内正式可用的 `WeaponSelectionPanel`，作为角色选择后的下一层页面。
+- 第一版优先服务单人流程：从角色选择页进入、查看当前角色、浏览可选初始武器、选中一把并确认进入下一步。
+- 设计必须以 `Assets/AI/PanelsSource/WeaponSelection/` 为唯一参考来源，不照搬 Godot 脚本实现。
+- 设计文档必须明确到足以支持后续 prefab、脚本、测试场景按统一规则落地。
+
+### 第一版范围
+- 保留：背景、返回按钮、标题、角色摘要面板、武器详情面板、底部武器滚动选择区、确认按钮。
+- 支持：默认选中第一把可用武器、悬停或选中时刷新武器详情、点击确认进入下一流程、点击返回回到角色选择页。
+- 可先占位：随机武器入口、锁定态、多人多玩家库存栏、难度选择真实页面跳转。
+- 不做：多人 `Inventory1~4` 同屏选择、联机加入流程、完整手柄焦点邻居系统、复杂解锁条件和禁用态规则。
+
+### 当前推进决策
+- 当前阶段先完成页面骨架、视觉区块、数据桥接和单人联动，不优先接完整开局链路。
+- 页面继续遵循 `Prefab-first`：布局、节点、视觉资源和层级关系固化在 prefab 或 editor setup tool 中，脚本只做绑定、刷新、选择逻辑。
+- `WeaponSelectionPanel` 第一版不直接从 UI 写死武器列表，而是必须从“角色允许的初始武器集合”生成。
+- 若当前角色数据中尚未正式落地 `startingWeaponIds`，允许先通过过渡桥接数据或测试上下文驱动，但必须在文档中明确为临时方案。
+
+## WeaponSelection 布局方案
+
+### 总体结构
+- 背景：全屏 `shop_background.png`。
+- 左上：`Back` 按钮，沿用已有返回视觉风格。
+- 顶部中间：标题 `WEAPON_SELECTION`，中文显示建议为“选择起始武器”。
+- 主内容上半区：左侧 `CharacterSummaryPanel`，右侧 `WeaponDetailPanel`。
+- 主内容下半区：`WeaponGridPanel`，内部是可滚动武器选择区。
+- 底部右侧或详情区底部：`Confirm` / `Start` 按钮，用于确认当前武器选择并进入下一步。
+
+### 推荐 Unity 层级
+- `WeaponSelectionPanel` 根节点挂 `BasePanel` 子类脚本。
+- `Background`
+- `TopBar`
+- `Content`
+- `TopContent`
+- `CharacterSummaryPanel`
+- `WeaponDetailPanel`
+- `BottomContent`
+- `WeaponGridPanel`
+- `BottomBar`
+
+### 布局原则
+- 整页结构优先使用 `VerticalLayoutGroup + HorizontalLayoutGroup + GridLayoutGroup + ScrollRect` 组合维护，不手搓整页绝对坐标。
+- `TopContent` 采用左右双栏稳定布局：左侧角色摘要宽度略窄，右侧武器详情略宽，保证描述和属性有足够阅读空间。
+- `BottomContent` 主要给武器网格留空间，标题固定高度，滚动区吃剩余空间。
+- 下方武器区支持单行或多行流式排列，但第一版推荐固定 `96 x 96` 单元，横向优先的紧凑网格视觉。
+
+## WeaponSelection 视觉约定
+
+### 背景与主题
+- 背景继续复用 `shop_background.png`，保持与角色选择页连续。
+- 角色摘要和武器详情面板统一采用深色半透明卡片，不引入额外大插画或脱离源素材的视觉主题。
+- 页面整体视觉仍然保持 Brotato 风格：深底、高对比标题、白色或浅色信息文字、重点按钮有明显明度差。
+
+### 武器格子
+- 单格基准尺寸按 `96 x 96` 设计，与原始参考一致。
+- 格子底图优先复用 `slot_empty` 或角色选择页已验证的同类资源，避免重新发明一套新的槽位风格。
+- 普通态：半透明深色底；高亮/选中/按下态：浅色提亮；禁用/锁定态：降低透明度并可叠加锁图标。
+- 图标居中显示，优先保持原比例；需要时在格底内留少量 padding，避免武器图贴边。
+- 若加入随机武器格，图标使用 `ui_assets/random_icon.png`，且视觉上与普通武器格保持同一体系。
+
+### 角色摘要与武器详情
+- `CharacterSummaryPanel` 第一版只显示：角色头像、角色名、职业、已选角色的关键属性摘要。
+- `WeaponDetailPanel` 第一版建议显示：武器图标、武器名、武器类型、品阶、核心数值摘要、简要描述区。
+- 若当前配置表没有正式的武器描述字段，描述区可先按“类型 + 数值摘要”组合生成，不伪造世界观文案。
+- 武器详情区应突出“当前聚焦对象”，即使底部网格很多，用户仍能一眼读到自己正在看的武器信息。
+
+## WeaponSelection 交互约定
+
+### 核心交互
+- 页面打开时，默认聚焦并选中第一把可用武器。
+- 鼠标悬停或焦点移动到某个武器格时，刷新右侧武器详情。
+- 点击某个武器格后，更新当前选中武器，并允许点击确认按钮继续。
+- 点击 `Confirm` 后，保存当前武器选择结果并进入下一步页面。
+- 点击 `Back` 后，关闭武器选择页并回到角色选择页，保留或恢复上一步角色选择结果。
+
+### 选中行为
+- 页面必须维护唯一当前武器：`SelectedWeaponId`。
+- 底部网格、右侧武器详情、后续开局上下文三者必须一致，不允许“看的是 A，实际选的是 B”。
+- 选中态尽量通过 Button 状态与底图颜色控制，不在运行时频繁替换额外选中特效图。
+
+### 占位交互
+- 随机武器入口若第一版未接真实逻辑，可以不显示，或显示但禁用并明确标注为预留。
+- 多人模式的多库存栏不进入第一版实现范围；布局上不提前塞四套库存面板，避免做假复杂度。
+
+## WeaponSelection 数据设计
+
+### 当前项目已有数据
+- `WeaponDataController` 已存在，加载 `Resources/Config/DataJson/WeaponData.json`。
+- `WeaponConfigData` 已具备 `id`、`name`、`grade`、`weapon_type`、`icon_path`、`damage`、`attack_speed`、`range` 等基础字段。
+- `CharacterData` 当前只有 `id`、`job`、`characterName`、`characterImage`、`attrIds`、`attrData`，尚未看到正式的 `startingWeaponIds` 字段。
+- `WeaponManager` 已支持 `startingWeaponIds` 作为开局武器来源，这说明运行时链路已经预留了“按武器 ID 开局”的能力。
+
+### 第一版数据使用方式
+- `WeaponSelectionPanel` 不直接展示全部武器，而是展示“当前角色允许的初始武器集合”。
+- 当前角色摘要数据继续复用角色选择页已确认的角色数据与头像加载方式。
+- 武器详情数据来自 `WeaponDataController.Instance.GetWeaponData(id)`。
+- 武器图标优先通过 `WeaponConfigData.icon_path` 加载；若现阶段配置未完善，再允许临时按命名约定映射到 `WeaponSelection/weapon_icons/` 或项目正式图标目录。
+
+### 推荐补充的数据抽象
+- 新增 `WeaponSelectionViewData`，只做运行时显示转换，不污染原始配置结构。
+- 视图模型建议包含：`weaponId`、`displayName`、`iconSpritePath`、`weaponType`、`grade`、`damage`、`attackSpeed`、`range`、`descriptionLines`、`isSelectable`。
+- 新增 `CharacterStartWeaponProvider` 或等价轻量入口，负责根据当前角色返回允许的起始武器 ID 列表。
+- 若后续角色表正式加上 `startingWeaponIds`，则优先直接走配置；过渡期桥接逻辑必须易于替换。
+
+## WeaponSelection 运行时职责划分
+
+### Panel 职责
+- `WeaponSelectionPanel`：只负责页面打开关闭、按钮事件、当前武器选择状态、驱动角色摘要和武器详情刷新。
+- `WeaponSelectionPanel` 不负责在运行时创建整页布局；整页层级由 prefab 或 editor setup tool 生成。
+- `WeaponSelectionPanel` 不直接承担武器候选计算规则，避免把角色配置、流程状态和 UI 耦合死。
+
+### 子组件建议
+- `WeaponSelectionCharacterView`：展示角色头像、姓名、职业、关键属性。
+- `WeaponSelectionDetailView`：展示当前武器的图标、名称、类型、品阶、数值摘要。
+- `WeaponSelectionGridItem`：负责单个武器格的图标、禁用态、选中态。
+- 若实现阶段需要保守推进，允许第一版先把这些逻辑合并在一个脚本中，但设计上默认它们是可拆分视图。
+
+### 数据桥接职责
+- 推荐新增 `WeaponSelectionService` 或等价轻量入口，负责：读取当前角色、计算候选武器列表、构造视图数据、保存当前选择结果。
+- 这样可以避免 `CharacterSelectPanel`、`GameManager`、`WeaponSelectionPanel` 之间直接互相硬连。
+
+## WeaponSelection 与流程接口
+
+### 页面跳转关系
+- `MainMenuPanel` -> `CharacterSelectPanel` -> `WeaponSelectionPanel` -> `DifficultySelection` 或等价下一步。
+- 当前项目若尚未实现正式 `DifficultySelection`，则 `WeaponSelectionPanel` 的确认按钮先允许写入上下文并调用占位日志或临时入口。
+
+### 必须补齐的接口约定
+- 必须新增或扩展一个“开局上下文”存储入口，至少记录：`SelectedCharacterId`、`SelectedWeaponId`、`SelectedLevel/Zone`、`IsEndless`、`IsBanSystemEnabled`。
+- `CharacterSelectPanel` 不应直接 `StartGame`，而应在需要武器选择的角色上跳转到 `WeaponSelectionPanel`。
+- `WeaponSelectionPanel.HandleConfirm()` 只负责：校验当前已选武器、写入上下文、跳转下一页；不直接在 UI 层拼战斗初始化。
+
+### 推荐方案
+- 延续 `CharacterSelection` 文档中的建议：新增 `RunStartContext`，统一承载角色、武器、区域和模式选择。
+- `GameManager` 在正式开局前读取 `RunStartContext`，再将 `SelectedWeaponId` 写入玩家或 `WeaponManager.startingWeaponIds` 链路。
+
+## WeaponSelection 实现顺序建议
+
+### Phase 1：设计与资源落地
+- 在 `UI_Design.md` 固化页面结构、交互边界、数据来源和流程接口。
+- 建立 `Resources/UI/Panels/WeaponSelection.prefab`。
+- 建立 `Assets/AI/UITest/WeaponSelection/` 测试场景和入口。
+
+### Phase 2：可视骨架
+- 完成背景、标题、返回按钮、角色摘要、武器详情、底部滚动网格和确认按钮布局。
+- 接入现有武器图标资源，确保至少能正确显示一组测试武器。
+
+### Phase 3：单人武器选择联动
+- 默认选中第一把武器。
+- 点击或悬停网格刷新详情。
+- `Back` 返回角色选择页。
+- `Confirm` 仅在存在有效选中武器时可点击。
+
+### Phase 4：开局上下文接入
+- 建立 `RunStartContext` 或等价结构。
+- 角色页写入角色选择结果，武器页写入武器选择结果。
+- `GameManager` 开局前读取角色与武器结果。
+
+### Phase 5：扩展与正式联调
+- 接随机武器、锁定态、正式难度选择页跳转。
+- 若后续有正式角色起始武器配置，则替换掉过渡桥接逻辑。
+
+## WeaponSelection 当前执行计划
+1. 先完成 `WeaponSelectionPanel` 的设计文档和布局约定。
+2. 搭建正式 prefab，明确上方双详情与下方滚动网格结构。
+3. 完成单人武器网格、详情区、返回按钮、确认按钮的 UI 联动。
+4. 建立角色到起始武器列表的桥接入口，先保证页面能由数据驱动。
+5. 预留并接入 `RunStartContext`，确保角色和武器选择结果不会在页面跳转中丢失。
+
+## WeaponSelection 明确约束
+- 只参考 `Assets/AI/PanelsSource/WeaponSelection/` 下素材和说明，不从无关来源拼接新的视觉语言。
+- 第一版只做单人流程，不提前做半套多人 UI。
+- 不在运行时代码里写死整页布局、字号、对齐和美术表现，基础视觉尽量由 prefab 维护。
+- 武器候选必须来自角色允许的起始武器集合，不能为了省事直接把 `WeaponData` 全表铺到页面上。
+- 当前若没有正式角色起始武器字段，必须显式标注为“过渡桥接方案”，后续可替换，不得把临时写死映射伪装成最终架构。
+
+## WeaponSelection 当前开放问题
+- `CharacterData` 何时补入正式 `startingWeaponIds`，或是否已有别处保存角色可选武器关系，当前仍需确认。
+- `WeaponConfigData.icon_path` 是否已经在当前项目 JSON 中完整可用，需要实现阶段验证。
+- `DifficultySelection` 页面当前是否存在正式入口，若没有，武器选择后的下一跳要先用占位流程承接。
+- 武器描述是否需要单独配置字段，当前从 `WeaponConfigData` 看更适合先用类型和数值摘要生成。
+
 ## 更新记录
 
 ### 2026-06-23
@@ -489,3 +700,8 @@
 - 记录主菜单补充要求：按钮左下对齐、背景位移、`Cloud Save` 仅占位。
 - 修正主菜单约束：只参考 `base_background`，禁止把整套角色/枪火/特效铺满屏幕。
 - 补充 `CharacterSelectionPanel` 的页面结构、交互范围、数据来源、运行时职责和开局接口约定。
+
+### 2026-06-24
+- 新增 `WeaponSelectionPanel` 设计文档，明确其在角色选择与难度选择之间的流程位置。
+- 固化 `WeaponSelection` 的页面结构、视觉约束、数据来源、运行时职责和开局上下文接口。
+- 明确当前角色数据尚未正式包含 `startingWeaponIds`，武器选择页实现需通过可替换的桥接方案接入候选武器数据。

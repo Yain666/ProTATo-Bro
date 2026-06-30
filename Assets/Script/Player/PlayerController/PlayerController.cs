@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour ,IDamageable
 
     public int icon;
     public PlayerStatus status;
+    public PlayerVisualController visualController;
     
     #endregion --- properties ---
 
@@ -19,10 +20,29 @@ public class PlayerController : MonoBehaviour ,IDamageable
             status = GetComponent<PlayerStatus>();
         }
 
+        if (visualController == null)
+        {
+            visualController = GetComponent<PlayerVisualController>();
+            if (visualController == null)
+            {
+                visualController = gameObject.AddComponent<PlayerVisualController>();
+            }
+        }
+
         if (status != null)
         {
             status.Initialize(this);
         }
+    }
+
+    public void ApplyCharacterVisual(CharacterData characterData)
+    {
+        if (visualController == null)
+        {
+            visualController = GetComponent<PlayerVisualController>();
+        }
+
+        visualController?.ApplyCharacter(characterData);
     }
     
     

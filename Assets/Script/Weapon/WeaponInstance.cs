@@ -57,6 +57,10 @@ public class WeaponInstance : MonoBehaviour
             if (sr == null) sr = weaponSpriteRoot.GetComponentInChildren<SpriteRenderer>();
             if (sr != null) sr.sprite = _data.inGameSprite;
             weaponSpriteRoot.localPosition = _data.spriteLocalPosition;
+            Vector2 scale = _data.spriteLocalScale;
+            if (Mathf.Approximately(scale.x, 0f)) scale.x = 1f;
+            if (Mathf.Approximately(scale.y, 0f)) scale.y = 1f;
+            weaponSpriteRoot.localScale = new Vector3(scale.x, scale.y, 1f);
         }
         if (muzzle != null) muzzle.localPosition = _data.muzzleLocalPosition;
     }
@@ -86,12 +90,51 @@ public class WeaponInstance : MonoBehaviour
         _meleeRestFront = offset.x + size.x * 0.5f;
     }
 
-    private float CurrentMeleeReach() => _meleeRestFront + _data.meleeThrustDistance * RangeFactor();
+    private float WeaponMeleeRangeBonus()
+    {
+        return Mathf.Clamp(_data.range, 0f, 12f);
+    }
 
-    private float RangeFactor()
+    private Vector2 CurrentSweepHitboxSize() => _meleeHitboxSize * MeleeRangeFactor();
+
+    private Vector2 CurrentSweepHitboxOffset() => _meleeHitboxOffset * MeleeRangeFactor();
+
+    private float CurrentSweepReach()
+    {
+        Vector2 size = CurrentSweepHitboxSize();
+        Vector2 offset = CurrentSweepHitboxOffset();
+        return Mathf.Max(0.01f, offset.x + size.x * 0.5f);
+    }
+
+    private float CurrentThrustReach()
+    {
+        return Mathf.Max(0.01f, _meleeRestFront + (WeaponMeleeRangeBonus() + _data.meleeThrustDistance) * MeleeRangeFactor());
+    }
+
+    private float CurrentMeleeReach()
+    {
+        return _data.meleeAttackType == MeleeAttackType.Sweep ? CurrentSweepReach() : CurrentThrustReach();
+    }
+
+    private float RangedRangeFactor()
     {
         float f = rangeMultiplier;
-        if (_ownerStatus != null) f *= 1f + Mathf.Max(0f, _ownerStatus.GetPropertyValue(PropertyType.Range)) / 100f;
+        if (_ownerStatus != null)
+        {
+            float rangeStat = _ownerStatus.GetPropertyValue(PropertyType.Range);
+            f *= Mathf.Max(0.1f, 1f + rangeStat / 100f);
+        }
+        return Mathf.Max(0.01f, f);
+    }
+
+    private float MeleeRangeFactor()
+    {
+        float f = rangeMultiplier;
+        if (_ownerStatus != null)
+        {
+            float rangeStat = _ownerStatus.GetPropertyValue(PropertyType.Range);
+            f *= Mathf.Max(0.1f, 1f + rangeStat / 50f);
+        }
         return Mathf.Max(0.01f, f);
     }
 
@@ -127,14 +170,18 @@ public class WeaponInstance : MonoBehaviour
     {
         if (_isAttacking) return;
         if (_data.IsMeleeWeapon) _actualRange = CurrentMeleeReach();
-        else _actualRange = _data.range * RangeFactor();
+        else _actualRange = _data.range * RangedRangeFactor();
 
         Transform target = FindClosestEnemy();
         if (target == null) return;
 
         RotateTowards(target.position);
         float speedMul = attackSpeedMultiplier;
-        if (_ownerStatus != null) speedMul *= 1f + Mathf.Max(0f, _ownerStatus.GetPropertyValue(PropertyType.AttackSpeed)) / 100f;
+        if (_ownerStatus != null)
+        {
+            float attackSpeedStat = _ownerStatus.GetPropertyValue(PropertyType.AttackSpeed);
+            speedMul *= Mathf.Max(0.1f, 1f + attackSpeedStat / 100f);
+        }
         _attackTimeScale = 1f / Mathf.Max(0.1f, speedMul);
         PerformAttack(target);
         _currentCooldown = _actualCooldown * _attackTimeScale;
@@ -168,12 +215,33 @@ public class WeaponInstance : MonoBehaviour
     private IEnumerator PerformRangedAttack()
     {
         _isAttacking = true;
+        Transform sp = muzzle != null ? muzzle : transform;
+        WeaponAudioUtility.PlayFireSfx(_data, sp.position);
         if (PoolManager.Instance != null && _data.projectilePrefab != null)
         {
-            Transform sp = muzzle != null ? muzzle : transform;
             GameObject bullet = PoolManager.Instance.GetObj(_data.projectilePrefab, sp.position, transform.rotation);
-            Bullet bs = bullet.GetComponent<Bullet>();
-            if (bs != null) { bs.weaponData = _data; bs.ownerStatus = _ownerStatus; }
+            Bullet normalBullet = bullet.GetComponent<Bullet>();
+            ExplosiveBullet explosiveBullet = bullet.GetComponent<ExplosiveBullet>();
+            if (_data.projectileBehaviorType == ProjectileBehaviorType.Explosive)
+            {
+                if (normalBullet != null)
+                {
+                    normalBullet.weaponData = null;
+                    normalBullet.enabled = false;
+                }
+
+                if (explosiveBullet != null) explosiveBullet.Initialize(_data, _ownerStatus);
+            }
+            else
+            {
+                if (explosiveBullet != null)
+                {
+                    explosiveBullet.weaponData = null;
+                    explosiveBullet.enabled = false;
+                }
+
+                if (normalBullet != null) normalBullet.Initialize(_data, _ownerStatus);
+            }
         }
         yield return MoveSprite(_spriteInitialLocalPosition + Vector3.left * _data.recoilDistance, _data.recoilDuration * 0.5f * _attackTimeScale);
         yield return MoveSprite(_spriteInitialLocalPosition, _data.recoilDuration * 0.5f * _attackTimeScale);
@@ -183,8 +251,16 @@ public class WeaponInstance : MonoBehaviour
     private IEnumerator PerformMeleeAttack()
     {
         _isAttacking = true;
+        WeaponAudioUtility.PlayRandomMeleeSwingSfx(transform.position);
         if (meleeHitbox == null) { _isAttacking = false; yield break; }
-        meleeHitbox.Configure(_data, _ownerStatus, _meleeHitboxSize, _meleeHitboxOffset);
+        if (_data.meleeAttackType == MeleeAttackType.Sweep)
+        {
+            meleeHitbox.Configure(_data, _ownerStatus, CurrentSweepHitboxSize(), CurrentSweepHitboxOffset());
+        }
+        else
+        {
+            meleeHitbox.Configure(_data, _ownerStatus, _meleeHitboxSize, _meleeHitboxOffset);
+        }
         meleeHitbox.gameObject.SetActive(false);
         if (_data.meleeAttackType == MeleeAttackType.Sweep) yield return PerformSweepAttack();
         else yield return PerformThrustAttack();
@@ -198,7 +274,7 @@ public class WeaponInstance : MonoBehaviour
 
     private IEnumerator PerformThrustAttack()
     {
-        float td = _data.meleeThrustDistance * RangeFactor();
+        float td = (WeaponMeleeRangeBonus() + _data.meleeThrustDistance) * MeleeRangeFactor();
         Vector3 recoil = _spriteInitialLocalPosition + Vector3.left * _data.recoilDistance;
         Vector3 thrust = _spriteInitialLocalPosition + Vector3.right * td;
         yield return MoveSprite(recoil, _data.meleeWindupDuration * _attackTimeScale);
@@ -226,14 +302,22 @@ public class WeaponInstance : MonoBehaviour
 
     private IEnumerator PerformSweepAttack()
     {
-        const float halfArc = 75f;
+        float halfArc = CurrentSweepHalfArc();
         SetSweepAngle(halfArc);
         yield return MoveSprite(_spriteInitialLocalPosition + Vector3.left * _data.recoilDistance, _data.meleeWindupDuration * _attackTimeScale);
         meleeHitbox.gameObject.SetActive(true);
+        meleeHitbox.Configure(_data, _ownerStatus, CurrentSweepHitboxSize(), CurrentSweepHitboxOffset());
         yield return SweepRotate(halfArc, -halfArc, _data.meleeActiveDuration * _attackTimeScale);
         if (!_data.dealDamageOnReturn) meleeHitbox.gameObject.SetActive(false);
         yield return MoveSprite(_spriteInitialLocalPosition, _data.meleeReturnDuration * _attackTimeScale);
         SetSweepAngle(0f);
+    }
+
+    private float CurrentSweepHalfArc()
+    {
+        float rangeFactor = Mathf.Max(0.1f, MeleeRangeFactor());
+        float extra = Mathf.Clamp((rangeFactor - 1f) * 30f, 0f, 24f);
+        return 75f + extra;
     }
 
     private void SetSweepAngle(float a)

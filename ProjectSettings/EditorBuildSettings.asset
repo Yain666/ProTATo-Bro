@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/AI/WeaponSystem/TestScenes/WeaponSystemTest.unity
     guid: 68b4db80ae571bd4db23c4ee9f63a36e
   - enabled: 1
-    path: Assets/AI/UITest/MainMenu/MainMenuTest.unity
+    path: Assets/Scenes/MainMenuTest.unity
     guid: a1f47e6bb5f84a6b90f2a5b2c7f64db1
+  - enabled: 1
+    path: Assets/Scenes/Demo.unity
+    guid: 38e5db794b8649e42b8feb732f733f6c
   m_configObjects: {}

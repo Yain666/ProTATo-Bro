@@ -17,6 +17,9 @@ public static class WeaponRuntimeFactory
 
         // 通用
         data.weaponName = cfg.name;
+        data.fireSfxPath = cfg.fire_sfx_path;
+        data.impactSfxPath = cfg.impact_sfx_path;
+        data.explosionSfxPath = cfg.explosion_sfx_path;
         data.weaponKind = cfg.weapon_type == "Melee" ? WeaponKind.Melee : WeaponKind.Ranged;
         data.isMelee = data.weaponKind == WeaponKind.Melee;
         data.damage = cfg.damage * statMul; // 品阶缩放（方案 A：只缩放伤害）
@@ -30,12 +33,28 @@ public static class WeaponRuntimeFactory
         data.recoilDistance = cfg.recoil_distance;
         data.recoilDuration = cfg.recoil_duration;
         data.spriteLocalPosition = new Vector2(cfg.sprite_x, cfg.sprite_y);
+        data.spriteLocalScale = new Vector2(
+            Mathf.Approximately(cfg.sprite_scale_x, 0f) ? 1f : cfg.sprite_scale_x,
+            Mathf.Approximately(cfg.sprite_scale_y, 0f) ? 1f : cfg.sprite_scale_y);
         data.muzzleLocalPosition = new Vector2(cfg.muzzle_x, cfg.muzzle_y);
 
         // 贴图/子弹：按 Resources 路径加载
         data.icon = LoadSprite(cfg.icon_path);
         data.inGameSprite = LoadSprite(cfg.sprite_path);
         data.projectilePrefab = LoadPrefab(cfg.projectile_path);
+        data.projectileSprite = LoadSprite(cfg.projectile_sprite_path);
+        data.projectileVisualScale = new Vector2(
+            Mathf.Approximately(cfg.projectile_scale_x, 0f) ? 1f : cfg.projectile_scale_x,
+            Mathf.Approximately(cfg.projectile_scale_y, 0f) ? 1f : cfg.projectile_scale_y);
+        data.projectileColliderSize = new Vector2(
+            cfg.projectile_collider_width > 0f ? cfg.projectile_collider_width : 0.24f,
+            cfg.projectile_collider_height > 0f ? cfg.projectile_collider_height : 0.12f);
+        data.projectileBehaviorType = ParseProjectileBehaviorType(cfg.projectile_behavior_type);
+        data.explosionRadius = Mathf.Max(0f, cfg.explosion_radius);
+        data.explosionDamageMultiplier = cfg.explosion_damage_multiplier > 0f ? cfg.explosion_damage_multiplier : 1f;
+        data.explosionEffectPath = cfg.explosion_vfx_path;
+        data.explosionSprite = LoadOptionalSprite(cfg.explosion_vfx_path);
+        data.explosionHitLimit = Mathf.Max(0, cfg.explosion_hit_limit);
 
         // 远程
         data.flySpeed = cfg.fly_speed;
@@ -62,10 +81,35 @@ public static class WeaponRuntimeFactory
         return Resources.Load<Sprite>(path);
     }
 
+    private static Sprite LoadOptionalSprite(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            return null;
+        }
+
+        if (path.EndsWith("_explosion") || path.Contains("light_cannon_explosion"))
+        {
+            return null;
+        }
+
+        return LoadSprite(path);
+    }
+
     private static GameObject LoadPrefab(string path)
     {
         if (string.IsNullOrEmpty(path)) return null;
         if (ResourceManager.Instance != null) return ResourceManager.Instance.GetPrefab(path);
         return Resources.Load<GameObject>(path);
+    }
+
+    private static ProjectileBehaviorType ParseProjectileBehaviorType(string raw)
+    {
+        if (string.IsNullOrEmpty(raw))
+        {
+            return ProjectileBehaviorType.Normal;
+        }
+
+        return raw == "Explosive" ? ProjectileBehaviorType.Explosive : ProjectileBehaviorType.Normal;
     }
 }

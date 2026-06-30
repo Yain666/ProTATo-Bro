@@ -1,0 +1,50 @@
+﻿[
+  {
+    "luck_min": 0,
+    "luck_max": 9,
+    "tier_1_delta": 0,
+    "tier_2_delta": 0,
+    "tier_3_delta": 0,
+    "tier_4_delta": 0
+  },
+  {
+    "luck_min": 10,
+    "luck_max": 19,
+    "tier_1_delta": -5,
+    "tier_2_delta": 3,
+    "tier_3_delta": 1,
+    "tier_4_delta": 0
+  },
+  {
+    "luck_min": 20,
+    "luck_max": 29,
+    "tier_1_delta": -10,
+    "tier_2_delta": 6,
+    "tier_3_delta": 3,
+    "tier_4_delta": 1
+  },
+  {
+    "luck_min": 30,
+    "luck_max": 39,
+    "tier_1_delta": -15,
+    "tier_2_delta": 9,
+    "tier_3_delta": 5,
+    "tier_4_delta": 2
+  },
+  {
+    "luck_min": 40,
+    "luck_max": 49,
+    "tier_1_delta": -20,
+    "tier_2_delta": 12,
+    "tier_3_delta": 7,
+    "tier_4_delta": 3
+  },
+  {
+    "luck_min": 50,
+    "luck_max": 999,
+    "tier_1_delta": -25,
+    "tier_2_delta": 15,
+    "tier_3_delta": 10,
+    "tier_4_delta": 5
+  }
+]

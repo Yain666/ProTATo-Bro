@@ -22,11 +22,10 @@ public class MainMenuPanel : BasePanel
     private void BindButtons()
     {
         UnbindButtons();
-
-        if (startButton != null) startButton.onClick.AddListener(HandleStart);
-        if (optionsButton != null) optionsButton.onClick.AddListener(HandleOptions);
-        if (cloudSaveButton != null) cloudSaveButton.onClick.AddListener(HandleCloudSave);
-        if (quitButton != null) quitButton.onClick.AddListener(HandleQuit);
+        UIButtonBinder.Bind(startButton, HandleStart);
+        UIButtonBinder.Bind(optionsButton, HandleOptions);
+        UIButtonBinder.Bind(cloudSaveButton, HandleCloudSave);
+        UIButtonBinder.Bind(quitButton, HandleQuit);
     }
 
     private void UnbindButtons()
@@ -54,7 +53,12 @@ public class MainMenuPanel : BasePanel
     {
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.OpenPanel<MainMenuSettingsPanel>("UI/Panels/MainMenuSettings", UILayer.Popup);
+            MainMenuSettingsPanel panel = UIManager.Instance.OpenPanel<MainMenuSettingsPanel>("UI/Panels/MainMenuSettings", UILayer.Popup);
+            if (panel == null)
+            {
+                MainMenuSettingsPanel runtimePanel = MainMenuSettingsRuntimeFactory.GetOrCreate(UIManager.Instance.popupLayer);
+                runtimePanel?.Open(true);
+            }
         }
     }
 
@@ -81,4 +85,5 @@ public class MainMenuPanel : BasePanel
         Transform child = transform.Find(nodeName);
         return child != null ? child.GetComponent<Button>() : null;
     }
+
 }

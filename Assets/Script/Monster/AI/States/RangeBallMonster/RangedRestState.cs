@@ -7,8 +7,6 @@ public class RangedRestState : MonsterState
     private RangedBallMonster ranged;
     private float timer;
     private float restDuration;
-    private int restHash = Animator.StringToHash("Rest");
-    private int recoverHash = Animator.StringToHash("Recover");
 
     public RangedRestState(Monster monster) : base(monster)
     {
@@ -24,11 +22,6 @@ public class RangedRestState : MonsterState
         float attackSpeedStat = monster.status.GetPropertyValue(PropertyType.AttackSpeed);
         // 使用您在 CharacterStatus 中写好的冷却换算公式：传入基准冷却 2.0 秒
         restDuration = monster.status.GetActualCooldown(2.0f); 
-        
-        if (monster.Anim != null)
-        {
-            monster.Anim.SetTrigger(restHash);
-        }
 
         //Debug.Log($"[状态机] {monster.MonsterName} 结束射击，进入冷却阶段，持续 {restDuration:F2} 秒");
     }
@@ -44,12 +37,5 @@ public class RangedRestState : MonsterState
         }
     }
     
-    public override void Exit()
-    {
-        // 【新增】：冷却完毕准备切回寻路时，重置状态
-        if (monster.Anim != null)
-        {
-            monster.Anim.SetTrigger(recoverHash);
-        }
-    }
+    public override void Exit() {}
 }

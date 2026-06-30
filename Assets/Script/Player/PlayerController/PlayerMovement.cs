@@ -27,14 +27,27 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D _rb;
     private Vector2 _inputVector;
     private Vector2 _currentVelocity;
+    private Script.Player.PlayerComponent.PlayerStatus _playerStatus;
+    private PlayerController _playerController;
+    private PlayerVisualController _playerVisual;
+    private Collider2D _movementCollider;
 
     void Awake()
     {
         _rb = GetComponentInChildren<Rigidbody2D>();
+        _playerStatus = GetComponentInParent<Script.Player.PlayerComponent.PlayerStatus>();
+        _playerController = GetComponentInParent<PlayerController>();
+        _playerVisual = _playerController != null ? _playerController.visualController : GetComponentInParent<PlayerVisualController>();
+        _movementCollider = GetComponentInChildren<Collider2D>();
     }
 
     void Update()
     {
+        if (_playerVisual == null)
+        {
+            _playerVisual = _playerController != null ? _playerController.visualController : GetComponentInParent<PlayerVisualController>();
+        }
+
         // 1. 在 Update 中处理输入，保证响应最及时
         // 使用 GetAxisRaw 而不是 GetAxis，因为我们要自己控制平滑度
         float x = Input.GetAxisRaw("Horizontal");
@@ -52,8 +65,15 @@ public class PlayerMovement : MonoBehaviour
 
     private void MoveCharacter()
     {
+        float finalMoveSpeed = moveSpeed;
+        if (_playerStatus != null)
+        {
+            float speedStat = _playerStatus.GetPropertyValue(PropertyType.Speed);
+            finalMoveSpeed *= Mathf.Max(0.1f, 1f + speedStat / 100f);
+        }
+
         // 计算目标速度向量
-        Vector2 targetVelocity = _inputVector * moveSpeed;
+        Vector2 targetVelocity = _inputVector * finalMoveSpeed;
 
         // 判断当前是否有输入
         if (_inputVector.magnitude > 0.01f) // 正在移动
@@ -63,7 +83,13 @@ public class PlayerMovement : MonoBehaviour
             _rb.velocity = Vector2.MoveTowards(_rb.velocity, targetVelocity, acceleration * Time.fixedDeltaTime);
             //float slip = _inputVector.x > 0? 0 : 180;
             //transform.rotation = Quaternion.Euler(0,slip,0);
-            spriteRenderer.flipX = !(_inputVector.x > 0);
+            bool facingRight = _inputVector.x >= 0f;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.flipX = !facingRight;
+            }
+
+            _playerVisual?.SetFacing(facingRight);
         }
         else // 停止输入
         {
@@ -78,5 +104,34 @@ public class PlayerMovement : MonoBehaviour
                 _rb.velocity = Vector2.MoveTowards(_rb.velocity, Vector2.zero, deceleration * Time.fixedDeltaTime);
             }
         }
+
+        _playerVisual?.SetMoveInput(_inputVector, _rb != null ? _rb.velocity : Vector2.zero);
+        ClampInsideMapBounds();
+    }
+
+    private void ClampInsideMapBounds()
+    {
+        if (_rb == null || MapManager.Instance == null)
+        {
+            return;
+        }
+
+        float padding = 0f;
+        if (_movementCollider != null)
+        {
+            Bounds bounds = _movementCollider.bounds;
+            padding = Mathf.Max(bounds.extents.x, bounds.extents.y);
+        }
+
+        Vector2 currentPosition = _rb.position;
+        Vector2 clampedPosition = MapManager.Instance.ClampWorldPosition(currentPosition, padding);
+        if ((clampedPosition - currentPosition).sqrMagnitude <= 0.000001f)
+        {
+            return;
+        }
+
+        _rb.position = clampedPosition;
+
+        _rb.velocity = Vector2.zero;
     }
 }

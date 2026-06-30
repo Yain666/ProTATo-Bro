@@ -55,6 +55,15 @@ public static class ItemSpawner
         //     rb.AddTorque(Random.insideUnitSphere * 10f);
         // }
     }
-    
-    
+
+    public static void ClearAllLootObjects()
+    {
+        LootObject[] loots = Object.FindObjectsOfType<LootObject>(true);
+        for (int i = 0; i < loots.Length; i++)
+        {
+            LootObject loot = loots[i];
+            if (loot == null) continue;
+            loot.ForceRecycle();
+        }
+    }
 }

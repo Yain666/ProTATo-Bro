@@ -9,6 +9,7 @@ public class CharacterStatus : MonoBehaviour
 
     // 回血计时器
     private float regenTimer = 0f;
+    private float nextLifeStealAvailableTime = 0f;
 
     // 快捷公开访问器示例（方便外部如武器刷新系统直接读取）
     public int Luck => Mathf.RoundToInt(GetPropertyValue(PropertyType.Luck));
@@ -30,7 +31,7 @@ public class CharacterStatus : MonoBehaviour
     {
         if (properties == null)
         {
-            Debug.Log(gameObject.name + "这哥们初始化没有完成，这个字典是空的 ");
+            //Debug.Log(gameObject.name + "这哥们初始化没有完成，这个字典是空的 ");
             properties = BasicPropertiesDataController.Instance.CreateRuntimeProperties();
         }
         
@@ -53,7 +54,10 @@ public class CharacterStatus : MonoBehaviour
     // 动态数据注入接口：根据属性ID列表和数值列表，重新初始化实体的运行时属性 (对齐对象池复用)
     public void InitStatus(List<int> attrIds, List<float> attrValues)
     {
-        if (properties == null) return;
+        if (properties == null)
+        {
+            properties = BasicPropertiesDataController.Instance.CreateRuntimeProperties();
+        }
 
         // 1. 原地重置：将现有的所有 21 项属性全部归零，彻底清除上一只怪物残留的数据
         foreach (var kvp in properties)
@@ -89,6 +93,38 @@ public class CharacterStatus : MonoBehaviour
         }
     }
 
+    public bool TryRecoverHp(int amount)
+    {
+        if (amount <= 0) return false;
+
+        float currentHp = GetPropertyValue(PropertyType.CurrentHp);
+        float maxHp = GetPropertyValue(PropertyType.MaxHp);
+        if (currentHp >= maxHp) return false;
+
+        float nextHp = Mathf.Clamp(currentHp + amount, 0f, maxHp);
+        int recovered = Mathf.RoundToInt(nextHp - currentHp);
+        if (recovered <= 0) return false;
+
+        ModifyBaseAttribute(PropertyType.CurrentHp, nextHp - currentHp);
+        return true;
+    }
+
+    public bool TryApplyLifeSteal(float chancePercent, int healAmount, float cooldownSeconds)
+    {
+        if (chancePercent <= 0f || healAmount <= 0) return false;
+        if (Time.time < nextLifeStealAvailableTime) return false;
+
+        float currentHp = GetPropertyValue(PropertyType.CurrentHp);
+        float maxHp = GetPropertyValue(PropertyType.MaxHp);
+        if (currentHp >= maxHp) return false;
+
+        if (Random.Range(0f, 100f) >= chancePercent) return false;
+        if (!TryRecoverHp(healAmount)) return false;
+
+        nextLifeStealAvailableTime = Time.time + Mathf.Max(0f, cooldownSeconds);
+        return true;
+    }
+
     #region 核心机制公式结算
 
     /// <summary>
@@ -96,8 +132,14 @@ public class CharacterStatus : MonoBehaviour
     /// </summary>
     /// <param name="incomingDamage">攻击者的原始伤害</param>
     /// <returns>实际扣除的生命值</returns>
-    public int TakeDamage(int incomingDamage,string WhoTakeDamage)
+    public virtual int TakeDamage(int incomingDamage,string WhoTakeDamage)
     {
+        if (incomingDamage > 0 && TryDodgeHit())
+        {
+            Debug.Log($"{gameObject.name} 闪避了 {WhoTakeDamage} 的攻击");
+            return 0;
+        }
+
         int armor = Mathf.RoundToInt(GetPropertyValue(PropertyType.Armor));
         float reduction = CalculateDamageReduction(armor);
         
@@ -114,7 +156,7 @@ public class CharacterStatus : MonoBehaviour
         // 更新当前生命值属性
         ModifyBaseAttribute(PropertyType.CurrentHp, nextHp - currentHp);
 
-        Debug.Log($"{gameObject.name}  受到了 {WhoTakeDamage} 的成吨伤害 {incomingDamage} 原始伤害，护甲 {armor} 减伤 { (1 - reduction) * 100:F1}%，实际扣血 {finalDamage}");
+        //Debug.Log($"{gameObject.name}  受到了 {WhoTakeDamage} 的成吨伤害 {incomingDamage} 原始伤害，护甲 {armor} 减伤 { (1 - reduction) * 100:F1}%，实际扣血 {finalDamage}");
         
         if (nextHp <= 0)
         {
@@ -122,6 +164,17 @@ public class CharacterStatus : MonoBehaviour
         }
 
         return finalDamage;
+    }
+
+    private bool TryDodgeHit()
+    {
+        float dodgeChance = Mathf.Clamp(GetPropertyValue(PropertyType.Dodge), 0f, 60f);
+        if (dodgeChance <= 0f)
+        {
+            return false;
+        }
+
+        return UnityEngine.Random.Range(0f, 100f) < dodgeChance;
     }
 
     /// <summary>
@@ -139,7 +192,6 @@ public class CharacterStatus : MonoBehaviour
         if (UnityEngine.Random.Range(0, 100) < critChance)
         {
             finalOutput = Mathf.RoundToInt(finalOutput * 2.0f);
-            Debug.Log("<color=red>暴击！</color>");
         }
         return finalOutput;
     }

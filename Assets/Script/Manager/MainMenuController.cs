@@ -25,13 +25,13 @@ public class MainMenuController : MonoBehaviour
         if (startButton != null)
         {
             startButton.onClick.RemoveAllListeners();
-            startButton.onClick.AddListener(StartBattle);
+            UIButtonBinder.Bind(startButton, StartBattle);
         }
 
         if (quitButton != null)
         {
             quitButton.onClick.RemoveAllListeners();
-            quitButton.onClick.AddListener(QuitGame);
+            UIButtonBinder.Bind(quitButton, QuitGame);
         }
     }
 

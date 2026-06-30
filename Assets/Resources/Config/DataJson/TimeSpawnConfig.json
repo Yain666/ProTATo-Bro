@@ -2,7 +2,7 @@
   {
     "Id": 1,
     "WaveId": 101,
-    "SpawnTime": 3,
+    "SpawnTime": 2,
     "MonsterName": "NormalZombie_Prefab",
     "NormalizedX": 0.5,
     "NormalizedY": 0.9
@@ -10,6 +10,30 @@
   {
     "Id": 2,
     "WaveId": 102,
+    "SpawnTime": 2,
+    "MonsterName": "NormalZombie_Prefab",
+    "NormalizedX": 0.5,
+    "NormalizedY": 0.5
+  },
+  {
+    "Id": 3,
+    "WaveId": 103,
+    "SpawnTime": 2,
+    "MonsterName": "NormalZombie_Prefab",
+    "NormalizedX": 0.5,
+    "NormalizedY": 0.5
+  },
+  {
+    "Id": 4,
+    "WaveId": 104,
+    "SpawnTime": 2,
+    "MonsterName": "NormalZombie_Prefab",
+    "NormalizedX": 0.5,
+    "NormalizedY": 0.5
+  },
+  {
+    "Id": 5,
+    "WaveId": 105,
     "SpawnTime": 2,
     "MonsterName": "NormalZombie_Prefab",
     "NormalizedX": 0.5,

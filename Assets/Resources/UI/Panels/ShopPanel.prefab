@@ -1589,6 +1589,7 @@ GameObject:
   - component: {fileID: 7080117446333199275}
   - component: {fileID: 374482455704630682}
   - component: {fileID: 6757485599317911649}
+  - component: {fileID: 6904582071120403828}
   m_Layer: 0
   m_Name: Btn_Continue
   m_TagString: Untagged
@@ -1699,6 +1700,19 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6904582071120403828
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2943583309707177408}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c1b5aabd4c617b43b2b6f4e1fe1602b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioName: UI/ButtonClick
 --- !u!1 &2963263486579026169
 GameObject:
   m_ObjectHideFlags: 0
@@ -1867,6 +1881,7 @@ GameObject:
   - component: {fileID: 6490383704965402183}
   - component: {fileID: 3943181924754040250}
   - component: {fileID: 6675364178681124351}
+  - component: {fileID: 2982703592606232163}
   m_Layer: 0
   m_Name: Btn_Close
   m_TagString: Untagged
@@ -1976,6 +1991,19 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2982703592606232163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3057356628353122306}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c1b5aabd4c617b43b2b6f4e1fe1602b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioName: UI/ButtonClick
 --- !u!1 &3582062135362190214
 GameObject:
   m_ObjectHideFlags: 0
@@ -4788,6 +4816,7 @@ GameObject:
   - component: {fileID: 6586771300336478817}
   - component: {fileID: 9182342648685231466}
   - component: {fileID: 4068294502450811142}
+  - component: {fileID: 7461187354390951846}
   m_Layer: 0
   m_Name: Btn_Refresh
   m_TagString: Untagged
@@ -4898,6 +4927,19 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &7461187354390951846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8379074859252274624}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c1b5aabd4c617b43b2b6f4e1fe1602b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioName: UI/ButtonClick
 --- !u!1 &8463040275212321500
 GameObject:
   m_ObjectHideFlags: 0

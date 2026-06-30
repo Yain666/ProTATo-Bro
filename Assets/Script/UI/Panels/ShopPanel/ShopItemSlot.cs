@@ -23,7 +23,7 @@ public class ShopItemSlot : MonoBehaviour
     {
         if (buyButton != null)
         {
-            buyButton.onClick.AddListener(HandleBuyClicked);
+            UIButtonBinder.Bind(buyButton, HandleBuyClicked);
         }
     }
 
@@ -73,7 +73,17 @@ public class ShopItemSlot : MonoBehaviour
 
             if (!string.IsNullOrEmpty(iconPath))
             {
-                Sprite iconSprite = Resources.Load<Sprite>(iconPath);
+                Sprite iconSprite = null;
+                if (ResourceManager.Instance != null)
+                {
+                    iconSprite = ResourceManager.Instance.GetIcon(iconPath);
+                }
+
+                if (iconSprite == null)
+                {
+                    iconSprite = Resources.Load<Sprite>(iconPath);
+                }
+
                 if (iconSprite != null)
                 {
                     iconImage.sprite = iconSprite;

@@ -96,6 +96,12 @@ public static class CameraSceneSetupTool
 
         cameraManager.combatCamera = combatCamera;
         cameraManager.shopCamera = shopCamera;
+        cameraManager.applyCombatLookAt = false;
+        cameraManager.combatFollowOffset = new Vector3(0f, -0.75f, 0f);
+        if (player != null)
+        {
+            cameraManager.SetFollowTarget(player);
+        }
         cameraManager.SwitchToCombat();
 
         BattleStateManager battleStateManager = Object.FindObjectOfType<BattleStateManager>();

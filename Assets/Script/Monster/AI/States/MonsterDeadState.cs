@@ -9,18 +9,13 @@ public class MonsterDeadState : MonsterState
     public override void Enter()
     {
         monster.StopMovement();
-        
-        // 【新增】：触发死亡动画
-        if (monster.Anim != null)
-        {
-            monster.Anim.SetTrigger("Die");
-        }
+        monster.VisualController?.PlayDeath();
         
         // 剥离碰撞，防止尸体阻挡玩家或产生不必要的物理计算
         var col = monster.GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
 
-        Debug.Log($"[状态机] {monster.MonsterName} 切换至死亡状态。");
+        //Debug.Log($"[状态机] {monster.MonsterName} 切换至死亡状态。");
     }
 
     public override void Exit()

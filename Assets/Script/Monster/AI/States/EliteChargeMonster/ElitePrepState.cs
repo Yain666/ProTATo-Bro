@@ -7,7 +7,6 @@ public class ElitePrepState : MonsterState
     private EliteChargeMonster elite;
     private float timer;
     private Vector2 lockedDirection; // 锁定的冲锋方向
-    private int prepAnim = Animator.StringToHash("Prep");
 
     public ElitePrepState(Monster monster) : base(monster)
     {
@@ -18,11 +17,7 @@ public class ElitePrepState : MonsterState
     {
         monster.StopMovement();
         timer = 0f;
-        
-        if (monster.Anim != null)
-        {
-            monster.Anim.SetTrigger(prepAnim);
-        }
+        monster.VisualController?.PlayChargePrep();
         
         if (monster.Target != null)
         {
@@ -38,6 +33,10 @@ public class ElitePrepState : MonsterState
     public override void Update()
     {
         timer += Time.deltaTime;
+        if (elite != null && elite.prepDuration > 0f)
+        {
+            monster.VisualController?.SetChargePrepProgress(timer / elite.prepDuration);
+        }
 
         if (timer >= elite.prepDuration)
         {

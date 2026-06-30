@@ -6,6 +6,7 @@ using UnityEngine;
 [RequireComponent(typeof(MonsterStatus))]
 public class Monster : MonoBehaviour, IKnockbackable
 {
+
     [Header("击退")]
     public float knockbackScale = 0.15f;
     public float knockbackDuration = 0.2f;
@@ -17,15 +18,17 @@ public class Monster : MonoBehaviour, IKnockbackable
     
     public string MonsterName { get; set; }
     private Action<Monster> _onDeathCallback;
-    
+    private MonsterDamageFlash _damageFlash;
     [Header("Loot & Audio")]
     public LootTable table;
     public string deathSFX = "deathSFX";
+    public int baseExperienceReward = 1;
 
     // 状态机
 
     public MonsterStateMachine StateMachine;
     public Animator Anim;
+    public MonsterVisualController VisualController;
 
     public Rigidbody2D rb;
     [HideInInspector]
@@ -33,16 +36,14 @@ public class Monster : MonoBehaviour, IKnockbackable
     
     protected virtual void Awake()
     {
-        //rb = GetComponent<Rigidbody2D>();
-        //status = GetComponent<MonsterStatus>();
-        //StateMachine = new MonsterStateMachine();
-        
-        //Anim = GetComponent<Animator>();
+        EnsureCoreReferences();
     }
     
     // 建立一个显式的内部组件确保方法
     private void EnsureStateMachineInitialized()
     {
+        EnsureCoreReferences();
+
         if (StateMachine == null)
         {
             StateMachine = new MonsterStateMachine();
@@ -56,6 +57,33 @@ public class Monster : MonoBehaviour, IKnockbackable
     {
         EnsureStateMachineInitialized();
         _onDeathCallback = onDeath;
+        ResetRuntimeStateForReuse();
+        if (_damageFlash == null)
+        {
+            _damageFlash = GetComponent<MonsterDamageFlash>();
+            if (_damageFlash == null)
+            {
+                _damageFlash = gameObject.AddComponent<MonsterDamageFlash>();
+            }
+        }
+
+        if (VisualController == null)
+        {
+            VisualController = GetComponent<MonsterVisualController>();
+            if (VisualController == null)
+            {
+                VisualController = gameObject.AddComponent<MonsterVisualController>();
+            }
+        }
+
+        VisualController?.Bind(this);
+
+        if (_damageFlash != null)
+        {
+            _damageFlash.targetRenderer = VisualController != null && VisualController.MainRenderer != null
+                ? VisualController.MainRenderer
+                : GetComponent<SpriteRenderer>();
+        }
         
         // 核心数据注入：将表格中配置的属性和数值，重新初始化并塞入该实体的属性系统中
         if (status != null && rawData != null)
@@ -69,14 +97,77 @@ public class Monster : MonoBehaviour, IKnockbackable
         status.ModifyBaseAttribute(PropertyType.CurrentHp, maxHp - currentHp);
 
         // 获取玩家目标
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            Target = player.transform;
-        }
+        Target = ResolvePlayerTarget();
 
         // 初始化状态机（默认进入追击状态）
         InitializeStates();
+    }
+
+    private void ResetRuntimeStateForReuse()
+    {
+        _knockbackTimer = 0f;
+        _knockbackVelocity = Vector2.zero;
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null)
+        {
+            col.enabled = true;
+        }
+
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+        }
+
+        ResetAnimatorStateIfAvailable();
+
+        VisualController?.ResetVisual();
+    }
+
+    private void ResetAnimatorStateIfAvailable()
+    {
+        if (Anim == null)
+        {
+            return;
+        }
+
+        if (!Anim.gameObject.activeInHierarchy || !Anim.isActiveAndEnabled)
+        {
+            return;
+        }
+
+        Anim.Rebind();
+        Anim.Update(0f);
+    }
+
+    private void EnsureCoreReferences()
+    {
+        if (status == null)
+        {
+            status = GetComponent<MonsterStatus>();
+        }
+
+        if (rb == null)
+        {
+            rb = GetComponent<Rigidbody2D>();
+        }
+
+        if (Anim == null)
+        {
+            Anim = GetComponent<Animator>();
+        }
+    }
+
+    private Transform ResolvePlayerTarget()
+    {
+        PlayerController playerController = FindObjectOfType<PlayerController>();
+        if (playerController != null)
+        {
+            return playerController.transform;
+        }
+
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        return player != null ? player.transform : null;
     }
     
     protected virtual void InitializeStates()
@@ -118,7 +209,27 @@ public class Monster : MonoBehaviour, IKnockbackable
     public void ApplyDamage(int incomingDamage)
     {
         // 伤害计算直接交还给属性系统处理
-        status.TakeDamage(incomingDamage,"Player!!!!");
+        int finalDamage = status.TakeDamage(incomingDamage,"Player!!!!");
+        if (finalDamage > 0 && gameObject.activeInHierarchy && status.GetPropertyValue(PropertyType.CurrentHp) > 0f)
+        {
+            _damageFlash?.PlayFlash();
+        }
+    }
+
+    private bool HasExcludedVisualName(Transform transform)
+    {
+        while (transform != null)
+        {
+            string name = transform.name;
+            if (name == "Props" || name == "Weapon" || name == "DamageGlowOverlay" || name == "Box" || name == "Exp1")
+            {
+                return true;
+            }
+
+            transform = transform.parent;
+        }
+
+        return false;
     }
     
     // TODO:当属性系统血量扣完时，由 MonsterStatus 触发此回调
@@ -126,11 +237,14 @@ public class Monster : MonoBehaviour, IKnockbackable
     {
         // 1. 播放音效
         PlayDeathSFX();
+
+        // 2. 发放经验
+        GrantExperienceReward();
         
-        // 2. 触发死亡回调（减少在场怪物计数、推进波次）
+        // 3. 触发死亡回调（减少在场怪物计数、推进波次）
         _onDeathCallback?.Invoke(this);
         
-        // 3. 计算掉落
+        // 4. 计算掉落
         if (table is not null)
         {
             List<ItemStack> drops = LootSystem.CalculateDrops(table);
@@ -140,11 +254,55 @@ public class Monster : MonoBehaviour, IKnockbackable
             }
         }
         
-        // 4. 切入死亡状态
+        // 5. 切入死亡状态
+        VisualController?.PlayDeath();
         StateMachine.TransitionTo(new MonsterDeadState(this));
         
         // 归还给自己职责内的 MonsterPool，各司其职
         MonsterPool.Instance.RecycleMonster(this);
+    }
+
+    private void GrantExperienceReward()
+    {
+        if (status == null || RunStateManager.Instance == null)
+        {
+            return;
+        }
+
+        int experienceReward = CalculateExperienceReward();
+        if (experienceReward <= 0)
+        {
+            return;
+        }
+
+        float xpGainMultiplier = GetPlayerXpGainMultiplier();
+        int finalExperienceReward = Mathf.Max(1, Mathf.RoundToInt(experienceReward * xpGainMultiplier));
+        RunStateManager.Instance.AddPlayerExperience(finalExperienceReward);
+    }
+
+    private int CalculateExperienceReward()
+    {
+        float maxHp = status.GetPropertyValue(PropertyType.MaxHp);
+        int scaledReward = Mathf.Max(0, Mathf.RoundToInt(maxHp / 12f));
+        return Mathf.Max(baseExperienceReward, scaledReward);
+    }
+
+    private float GetPlayerXpGainMultiplier()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null)
+        {
+            return 1f;
+        }
+
+        Script.Player.PlayerComponent.PlayerStatus playerStatus = player.GetComponent<Script.Player.PlayerComponent.PlayerStatus>();
+        if (playerStatus == null)
+        {
+            return 1f;
+        }
+
+        float xpGain = playerStatus.GetPropertyValue(PropertyType.XpGain);
+        return Mathf.Max(0f, 1f + xpGain / 100f);
     }
     
     // 音效一定要被调用 TODO:目前只是一个Debug而已,记得弄一下死亡音效，现在所有怪物音效一样
@@ -152,7 +310,11 @@ public class Monster : MonoBehaviour, IKnockbackable
     {
         if (!string.IsNullOrEmpty(deathSFX))
         {
-            AudioManager.Instance.Play3D(deathSFX, transform.position, AudioTrack.SFX);
+            AudioManager audioManager = AudioManager.Instance;
+            if (audioManager != null)
+            {
+                audioManager.Play3D(deathSFX, transform.position, AudioTrack.SFX);
+            }
         }
     }
 
@@ -162,7 +324,8 @@ public class Monster : MonoBehaviour, IKnockbackable
         if (rb != null)
         {
             Vector2 direction = (targetPos - (Vector2)transform.position).normalized;
-            rb.velocity = direction * speed;
+            rb.velocity = direction * ResolveAdjustedMoveSpeed(speed);
+            VisualController?.SetChase(rb.velocity);
         }
     }
 
@@ -173,6 +336,8 @@ public class Monster : MonoBehaviour, IKnockbackable
         {
             rb.velocity = Vector2.zero;
         }
+
+        VisualController?.SetChase(Vector2.zero);
     }
     
     private void OnTriggerEnter2D(Collider2D collision)
@@ -182,5 +347,22 @@ public class Monster : MonoBehaviour, IKnockbackable
         {
             chargeState.HandleTriggerEnter(collision);
         }
+    }
+
+    private float ResolveAdjustedMoveSpeed(float baseSpeed)
+    {
+        float finalSpeed = baseSpeed;
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            Script.Player.PlayerComponent.PlayerStatus playerStatus = player.GetComponent<Script.Player.PlayerComponent.PlayerStatus>();
+            if (playerStatus != null)
+            {
+                float enemySpeedStat = playerStatus.GetPropertyValue(PropertyType.EnemySpeed);
+                finalSpeed *= Mathf.Max(0.1f, 1f + enemySpeedStat / 100f);
+            }
+        }
+
+        return Mathf.Max(0f, finalSpeed);
     }
 }

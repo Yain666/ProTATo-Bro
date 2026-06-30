@@ -15,11 +15,15 @@ public class ShopPanel : BasePanel
     public Text goldText;
     public Image goldIcon;
 
+    private ShopWeaponRecyclePopup _recyclePopup;
+
     protected override void OnOpen(object args)
     {
         ResolveShopSystem();
         shopSystem?.EnsureInitialized();
         BindButtons();
+        EnsureRecyclePopup();
+        BindWeaponSlotClicks();
         RunStateManager.Instance.OnStateChanged += HandleGoldChanged;
         RefreshTitle();
         RefreshGold();
@@ -30,6 +34,10 @@ public class ShopPanel : BasePanel
     protected override void OnClose()
     {
         UnbindButtons();
+        if (_recyclePopup != null)
+        {
+            _recyclePopup.Hide();
+        }
         RunStateManager.Instance.OnStateChanged -= HandleGoldChanged;
     }
 
@@ -141,6 +149,60 @@ public class ShopPanel : BasePanel
         }
     }
 
+    private void BindWeaponSlotClicks()
+    {
+        for (int i = 0; i < weaponSlots.Count; i++)
+        {
+            if (weaponSlots[i] != null)
+            {
+                weaponSlots[i].BindClick(HandleWeaponSlotClicked);
+            }
+        }
+    }
+
+    private void HandleWeaponSlotClicked(int slotIndex, OwnedWeapon ownedWeapon)
+    {
+        if (shopSystem == null)
+        {
+            return;
+        }
+
+        WeaponConfigData weaponData = WeaponDataController.Instance.GetWeaponData(ownedWeapon.id);
+        if (weaponData == null)
+        {
+            return;
+        }
+
+        int refundGold = shopSystem.GetWeaponRecyclePrice(ownedWeapon.id, ownedWeapon.grade);
+        EnsureRecyclePopup();
+        _recyclePopup.Show(weaponData.name, ownedWeapon.grade, refundGold, () => ConfirmSellWeapon(slotIndex));
+    }
+
+    private void ConfirmSellWeapon(int slotIndex)
+    {
+        if (shopSystem == null)
+        {
+            return;
+        }
+
+        if (shopSystem.SellWeaponAt(slotIndex, out int refundGold))
+        {
+            RefreshGold();
+            RefreshWeaponSlots();
+            Debug.Log($"<color=yellow>[武器回收] 获得金币 {refundGold}</color>");
+        }
+    }
+
+    private void EnsureRecyclePopup()
+    {
+        if (_recyclePopup != null)
+        {
+            return;
+        }
+
+        _recyclePopup = ShopWeaponRecyclePopup.Create(transform);
+    }
+
     private void ResolveShopSystem()
     {
         if (shopSystem != null) return;
@@ -163,9 +225,9 @@ public class ShopPanel : BasePanel
     private void BindButtons()
     {
         UnbindButtons();
-        if (refreshButton != null) refreshButton.onClick.AddListener(RefreshItems);
-        if (continueButton != null) continueButton.onClick.AddListener(CloseShop);
-        if (closeButton != null) closeButton.onClick.AddListener(CloseShop);
+        UIButtonBinder.Bind(refreshButton, RefreshItems);
+        UIButtonBinder.Bind(continueButton, CloseShop);
+        UIButtonBinder.Bind(closeButton, CloseShop);
     }
 
     private void UnbindButtons()
@@ -183,4 +245,5 @@ public class ShopPanel : BasePanel
             BattleStateManager.Instance.CloseShop();
         }
     }
+
 }

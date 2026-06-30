@@ -72,6 +72,11 @@ public class BattleStateManager : MonoBehaviour
 
     public void EnterShop()
     {
+        if (MonsterManager.Instance != null)
+        {
+            MonsterManager.Instance.CleanupSceneForShop();
+        }
+
         SetState(BattleState.Shop);
         if (cameraManager != null) cameraManager.SwitchToShop();
         Time.timeScale = 0f;
@@ -106,6 +111,45 @@ public class BattleStateManager : MonoBehaviour
 
     private void HandleWaveEnded(int level, int wave)
     {
+        ApplyPlayerHarvestingReward();
+
+        if (MonsterController.Instance != null && !MonsterController.Instance.HasNextWave())
+        {
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.ReturnToMainMenu();
+            }
+            return;
+        }
+
+        if (LevelUpFlowManager.Instance != null && LevelUpFlowManager.Instance.HasPendingLevelUps)
+        {
+            EnterPaused();
+            LevelUpFlowManager.Instance.TryOpenLevelUpPanel();
+            return;
+        }
+
         EnterShop();
+    }
+
+    private void ApplyPlayerHarvestingReward()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null || RunStateManager.Instance == null)
+        {
+            return;
+        }
+
+        Script.Player.PlayerComponent.PlayerStatus playerStatus = player.GetComponent<Script.Player.PlayerComponent.PlayerStatus>();
+        if (playerStatus == null)
+        {
+            return;
+        }
+
+        int harvestGold = playerStatus.OnWaveEndHarvesting();
+        if (harvestGold > 0)
+        {
+            RunStateManager.Instance.AddGold(harvestGold);
+        }
     }
 }

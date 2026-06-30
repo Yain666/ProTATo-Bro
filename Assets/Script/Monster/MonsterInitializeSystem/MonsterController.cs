@@ -50,7 +50,7 @@ public class MonsterController : MonoBehaviour
         _randomSpawnConfigCtrl.LoadData("Config/DataJson/RandomSpawnConfig");
         _monsterDataCtrl.LoadData("Config/DataJson/MonsterData");
 
-        Debug.Log($"[MonsterController] 关卡 {level} 数据解析与初始化阶段结束。");
+        //Debug.Log($"[MonsterController] 关卡 {level} 数据解析与初始化阶段结束。");
     }
     
     /// <summary>
@@ -61,8 +61,15 @@ public class MonsterController : MonoBehaviour
         _currentWaveIndex++;
         int waveId = _currentLevel * 100 + _currentWaveIndex;
 
-        Debug.Log("NextWave");
+        //Debug.Log("NextWave");
         return AssembleWaveConfig(_currentLevel, _currentWaveIndex, waveId);
+    }
+
+    public bool HasNextWave()
+    {
+        int nextWaveIndex = _currentWaveIndex + 1;
+        int waveId = _currentLevel * 100 + nextWaveIndex;
+        return _waveConfigCtrl.GetDataByKey(waveId) != null;
     }
     
     // 纯粹的内存数据组装逻辑 (不包含任何实例化或加载操作)
@@ -76,14 +83,14 @@ public class MonsterController : MonoBehaviour
         }
 
         // ==================【新增诊断日志】==================
-        Debug.Log($"<color=yellow>[数据诊断] 开始拼装 WaveId: {waveId}</color>");
-        Debug.Log($"[数据诊断] 原始小波次表总行数: {_subWaveConfigCtrl.GetAllData().Count}");
+        //Debug.Log($"<color=yellow>[数据诊断] 开始拼装 WaveId: {waveId}</color>");
+        //Debug.Log($"[数据诊断] 原始小波次表总行数: {_subWaveConfigCtrl.GetAllData().Count}");
         int subWaveMatchCount = 0;
         foreach (var d in _subWaveConfigCtrl.GetAllData())
         {
             if (d.WaveId == waveId) subWaveMatchCount++;
         }
-        Debug.Log($"[数据诊断] 匹配 WaveId {waveId} 的小波次配置行数: {subWaveMatchCount}");
+        //Debug.Log($"[数据诊断] 匹配 WaveId {waveId} 的小波次配置行数: {subWaveMatchCount}");
         // ===================================================
         
         

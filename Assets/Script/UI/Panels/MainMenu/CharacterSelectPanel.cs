@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class CharacterSelectPanel : BasePanel
 {
-    private const string CharacterSlotBackgroundPath = "UI/Panels/ShopPanel/Textures/slot_empty";
+    private const string SelectionSlotPrefabPath = "UI/Panels/Common/SelectionSlot";
 
     [Header("Top")]
     public Button backButton;
@@ -27,10 +27,9 @@ public class CharacterSelectPanel : BasePanel
     public RectTransform gridContent;
     public GridLayoutGroup gridLayoutGroup;
 
-    private readonly List<Button> _characterButtons = new List<Button>();
+    private readonly List<SelectionSlot> _characterSlots = new List<SelectionSlot>();
     private readonly List<CharacterData> _characterDataList = new List<CharacterData>();
     private CharacterData _selectedCharacter;
-    private Sprite _slotBackground;
 
     protected override void OnOpen(object args)
     {
@@ -39,7 +38,7 @@ public class CharacterSelectPanel : BasePanel
         EnsureReferences();
         BindButtons();
         BuildCharacterGrid();
-        SelectDefaultCharacter();
+        ClearSelection();
     }
 
     protected override void OnClose()
@@ -87,8 +86,8 @@ public class CharacterSelectPanel : BasePanel
     private void BindButtons()
     {
         UnbindButtons();
-        if (backButton != null) backButton.onClick.AddListener(BackToMenu);
-        if (startButton != null) startButton.onClick.AddListener(HandleStartPlaceholder);
+        UIButtonBinder.Bind(backButton, BackToMenu);
+        UIButtonBinder.Bind(startButton, HandleStartPlaceholder);
     }
 
     private void UnbindButtons()
@@ -103,15 +102,16 @@ public class CharacterSelectPanel : BasePanel
 
         ClearCharacterButtons();
         _characterDataList.Clear();
-        _slotBackground = Resources.Load<Sprite>(CharacterSlotBackgroundPath);
+        GameObject slotPrefab = Resources.Load<GameObject>(SelectionSlotPrefabPath);
+        if (slotPrefab == null) return;
 
         List<CharacterData> characters = CharacterDataController.Instance.GetAllData();
         for (int i = 0; i < characters.Count; i++)
         {
             CharacterData character = characters[i];
             _characterDataList.Add(character);
-            Button button = CreateCharacterItem(gridContent, character);
-            _characterButtons.Add(button);
+            SelectionSlot slot = CreateCharacterItem(gridContent, slotPrefab, character);
+            if (slot != null) _characterSlots.Add(slot);
         }
     }
 
@@ -122,94 +122,44 @@ public class CharacterSelectPanel : BasePanel
             Destroy(gridContent.GetChild(i).gameObject);
         }
 
-        _characterButtons.Clear();
+        _characterSlots.Clear();
     }
 
-    private Button CreateCharacterItem(Transform parent, CharacterData character)
+    private SelectionSlot CreateCharacterItem(Transform parent, GameObject slotPrefab, CharacterData character)
     {
-        GameObject buttonObject = new GameObject($"Character_{character.id}", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
-        buttonObject.transform.SetParent(parent, false);
+        GameObject slotObject = Object.Instantiate(slotPrefab, parent);
+        slotObject.name = $"Character_{character.id}";
 
-        RectTransform rect = buttonObject.GetComponent<RectTransform>();
-        rect.sizeDelta = gridLayoutGroup != null ? gridLayoutGroup.cellSize : new Vector2(96f, 96f);
-
-        Image background = buttonObject.GetComponent<Image>();
-        background.sprite = _slotBackground;
-        background.type = Image.Type.Simple;
-        background.color = new Color(0.35f, 0.4f, 0.45f, 1f);
-
-        Button button = buttonObject.GetComponent<Button>();
-        button.targetGraphic = background;
-        ColorBlock colors = button.colors;
-        colors.normalColor = new Color(0.35f, 0.4f, 0.45f, 1f);
-        colors.highlightedColor = new Color(0.9f, 0.9f, 0.9f, 1f);
-        colors.selectedColor = new Color(0.95f, 0.95f, 0.95f, 1f);
-        colors.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-        colors.disabledColor = new Color(0.25f, 0.25f, 0.25f, 0.6f);
-        button.colors = colors;
-
-        CreateCharacterItemIcon(buttonObject.transform, character.characterImage);
-        CreateCharacterItemLabel(buttonObject.transform, character.characterName);
-
-        button.onClick.AddListener(() => SelectCharacter(character));
-        return button;
-    }
-
-    private void CreateCharacterItemIcon(Transform parent, string characterImage)
-    {
-        GameObject iconObject = new GameObject("Icon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-        iconObject.transform.SetParent(parent, false);
-
-        RectTransform rect = iconObject.GetComponent<RectTransform>();
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = new Vector2(10f, 10f);
-        rect.offsetMax = new Vector2(-10f, -18f);
-
-        Image icon = iconObject.GetComponent<Image>();
-        icon.sprite = LoadCharacterSprite(characterImage);
-        icon.color = Color.white;
-        icon.preserveAspect = true;
-        icon.raycastTarget = false;
-    }
-
-    private void CreateCharacterItemLabel(Transform parent, string characterName)
-    {
-        GameObject labelObject = new GameObject("Label", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
-        labelObject.transform.SetParent(parent, false);
-
-        RectTransform rect = labelObject.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0f, 0f);
-        rect.anchorMax = new Vector2(1f, 0f);
-        rect.pivot = new Vector2(0.5f, 0f);
-        rect.anchoredPosition = new Vector2(0f, 2f);
-        rect.sizeDelta = new Vector2(0f, 20f);
-
-        Text label = labelObject.GetComponent<Text>();
-        label.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        label.text = characterName;
-        label.fontSize = 14;
-        label.alignment = TextAnchor.LowerCenter;
-        label.color = Color.white;
-        label.raycastTarget = false;
-    }
-
-    private void SelectDefaultCharacter()
-    {
-        if (_characterDataList.Count > 0)
+        RectTransform rect = slotObject.GetComponent<RectTransform>();
+        if (rect != null)
         {
-            SelectCharacter(_characterDataList[0]);
+            rect.sizeDelta = gridLayoutGroup != null ? gridLayoutGroup.cellSize : new Vector2(96f, 96f);
         }
-        else
-        {
-            _selectedCharacter = null;
-            RefreshSelectionView();
-        }
+
+        SelectionSlot slot = slotObject.GetComponent<SelectionSlot>();
+        if (slot == null) return null;
+
+        slot.Bind(LoadCharacterSprite(character.characterImage), character.characterName, () => SelectCharacter(character));
+        return slot;
+    }
+
+    private void ClearSelection()
+    {
+        _selectedCharacter = null;
+        RunStartContext.Instance.ClearCharacter();
+        RunStartContext.Instance.ResetWeaponSelection();
+        RunStartContext.Instance.ResetDifficultySelection();
+        RefreshSelectionView();
     }
 
     private void SelectCharacter(CharacterData character)
     {
         _selectedCharacter = character;
+        if (_selectedCharacter != null)
+        {
+            RunStartContext.Instance.SetCharacter(_selectedCharacter.id);
+        }
+
         RefreshSelectionView();
     }
 
@@ -220,9 +170,15 @@ public class CharacterSelectPanel : BasePanel
             SetText(selectedCharacterNameText, "请选择角色");
             SetText(selectedCharacterJobText, string.Empty);
             SetText(selectedCharacterDescriptionText, "当前没有可用角色数据。");
-            if (selectedCharacterIcon != null) selectedCharacterIcon.sprite = null;
+            if (selectedCharacterIcon != null)
+            {
+                selectedCharacterIcon.sprite = null;
+                selectedCharacterIcon.enabled = false;
+            }
             SetText(maxDifficultyText, "最高通关难度: --");
             SetText(maxEndlessText, "最高无尽波数: --");
+            if (startButton != null) startButton.interactable = false;
+            UpdateCharacterButtonStates();
             return;
         }
 
@@ -231,6 +187,7 @@ public class CharacterSelectPanel : BasePanel
         SetText(selectedCharacterDescriptionText, BuildCharacterDescription(_selectedCharacter));
         if (selectedCharacterIcon != null)
         {
+            selectedCharacterIcon.enabled = true;
             selectedCharacterIcon.sprite = LoadCharacterSprite(_selectedCharacter.characterImage);
             selectedCharacterIcon.color = Color.white;
             selectedCharacterIcon.preserveAspect = true;
@@ -238,20 +195,20 @@ public class CharacterSelectPanel : BasePanel
 
         SetText(maxDifficultyText, "最高通关难度: --");
         SetText(maxEndlessText, "最高无尽波数: --");
+        if (startButton != null) startButton.interactable = true;
         UpdateCharacterButtonStates();
     }
 
     private void UpdateCharacterButtonStates()
     {
-        for (int i = 0; i < _characterButtons.Count && i < _characterDataList.Count; i++)
+        for (int i = 0; i < _characterSlots.Count && i < _characterDataList.Count; i++)
         {
-            Button button = _characterButtons[i];
-            Image image = button != null ? button.targetGraphic as Image : null;
-            if (button == null || image == null) continue;
+            SelectionSlot slot = _characterSlots[i];
+            if (slot == null) continue;
 
             CharacterData data = _characterDataList[i];
             bool selected = _selectedCharacter != null && data.id == _selectedCharacter.id;
-            image.color = selected ? new Color(1f, 1f, 1f, 1f) : new Color(0.35f, 0.4f, 0.45f, 1f);
+            slot.SetSelected(selected);
         }
     }
 
@@ -301,9 +258,24 @@ public class CharacterSelectPanel : BasePanel
 
     private void HandleStartPlaceholder()
     {
-        Debug.Log(_selectedCharacter != null
-            ? $"[CharacterSelectPanel] Start reserved with character: {_selectedCharacter.characterName}"
-            : "[CharacterSelectPanel] Start reserved without character.");
+        if (_selectedCharacter == null)
+        {
+            Debug.LogWarning("[CharacterSelectPanel] 当前没有选中的角色，无法进入武器选择。");
+            return;
+        }
+
+        RunStartContext.Instance.SetCharacter(_selectedCharacter.id);
+        RunStartContext.Instance.ResetWeaponSelection();
+        RunStartContext.Instance.ResetDifficultySelection();
+
+        if (UIManager.Instance == null)
+        {
+            Debug.LogWarning("[CharacterSelectPanel] 找不到 UIManager，无法打开武器选择页。");
+            return;
+        }
+
+        UIManager.Instance.ClosePanel<CharacterSelectPanel>();
+        UIManager.Instance.OpenPanel<WeaponSelectionPanel>("UI/Panels/WeaponSelection", UILayer.Panel, _selectedCharacter);
     }
 
     private Button FindButton(string path)

@@ -124,5 +124,23 @@
     "AttrName": "consumable_heal",
     "Description": "消耗品回复",
     "ValueType": 0
+  },
+  {
+    "Id": 22,
+    "AttrName": "projectile_pierce",
+    "Description": "穿透次数",
+    "ValueType": 1
+  },
+  {
+    "Id": 23,
+    "AttrName": "projectile_bounce",
+    "Description": "弹射次数",
+    "ValueType": 1
+  },
+  {
+    "Id": 24,
+    "AttrName": "explosion_range_percent",
+    "Description": "爆炸范围增值",
+    "ValueType": 0
   }
 ]

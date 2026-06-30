@@ -43,13 +43,11 @@ public class PoolManager : MonoBehaviour
             instance = Instantiate(prefab, transform, true);
 
             // --- 核心逻辑：注入回收回调 ---
-            // 获取接口
-            var poolable = instance.GetComponent<IPoolable>();
-            if (poolable != null)
+            IPoolable[] poolables = instance.GetComponents<IPoolable>();
+            for (int i = 0; i < poolables.Length; i++)
             {
-                // 我们在这里定义“回收”的具体行为：
-                // "当你调用这个Action时，我会把你(obj)重新压回 prefab 对应的栈里"
-                // 闭包(Closure)特性让我们不需要在子弹里存 ID，这里直接捕获了 prefab 变量
+                IPoolable poolable = poolables[i];
+                if (poolable == null) continue;
                 poolable.SetReturnAction((obj) => ReturnObj(obj, prefabID));
             }
         }
@@ -59,8 +57,12 @@ public class PoolManager : MonoBehaviour
         instance.SetActive(true);
 
         // 调用接口的出生方法
-        var p = instance.GetComponent<IPoolable>();
-        if (p != null) p.OnSpawn();
+        IPoolable[] spawnedPoolables = instance.GetComponents<IPoolable>();
+        for (int i = 0; i < spawnedPoolables.Length; i++)
+        {
+            IPoolable poolable = spawnedPoolables[i];
+            if (poolable != null) poolable.OnSpawn();
+        }
 
         return instance;
     }
@@ -73,8 +75,12 @@ public class PoolManager : MonoBehaviour
             poolDic.Add(key, new Stack<GameObject>());
         }
 
-        var p = obj.GetComponent<IPoolable>();
-        if (p != null) p.OnRecycle();
+        IPoolable[] recycledPoolables = obj.GetComponents<IPoolable>();
+        for (int i = 0; i < recycledPoolables.Length; i++)
+        {
+            IPoolable poolable = recycledPoolables[i];
+            if (poolable != null) poolable.OnRecycle();
+        }
 
         obj.SetActive(false);
         poolDic[key].Push(obj);

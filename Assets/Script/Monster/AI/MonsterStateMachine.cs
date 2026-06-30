@@ -11,7 +11,6 @@ public class MonsterStateMachine
     /// </summary>
     public void Initialize(IState startingState)
     {
-        Debug.Log($"这个状态是不是空的 {startingState == null}");
         CurrentState = startingState;
         CurrentState.Enter();
     }

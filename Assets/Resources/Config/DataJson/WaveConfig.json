@@ -3,9 +3,9 @@
     "WaveId": 101,
     "Level": 1,
     "BigWave": 1,
-    "Duration": 10.0,
-    "MaxMonsterCap": 7,
-    "RandomSpawnCD": 2.0
+    "Duration": 35.0,
+    "MaxMonsterCap": 20,
+    "RandomSpawnCD": 0.2
   },
   {
     "WaveId": 102,
